@@ -1,8 +1,9 @@
-import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from 'react-native';
-import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'expo-router';
+import { Bold, Clock, Globe, Image as ImageIcon, Italic, Link, Lock, Menu, Plus, Quote, Settings, Tag } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CreateScreen() {
@@ -36,7 +37,7 @@ export default function CreateScreen() {
     }
 
     setLoading(true);
-    
+
     // Convert content literal to JSON format matching the schema
     const { error } = await supabase
       .from('posts')
@@ -60,65 +61,152 @@ export default function CreateScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <SafeAreaView edges={['top']} className="flex-1 bg-[#FAFAFA]">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
-        <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-100">
-          <Text className="text-xl font-bold text-slate-800">New Entry</Text>
-          <TouchableOpacity 
-            className="bg-indigo-600 px-6 py-2 rounded-full opacity-90 disabled:opacity-50"
-            onPress={handlePost}
-            disabled={loading || !content.trim() || !title.trim()}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text className="text-white font-bold">Publish</Text>
-            )}
+        {/* Custom Header (Matches the new app layout system) */}
+        <View className="bg-[#FAFAFA] flex-row justify-between items-center px-6 py-4 border-b border-slate-100">
+          <TouchableOpacity className="w-8 justify-center">
+            <Menu color="#333" size={24} />
+          </TouchableOpacity>
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-2xl font-bold text-slate-900 text-center" numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
+              Faith Journal
+            </Text>
+          </View>
+          <TouchableOpacity className="w-8 h-8 rounded-full overflow-hidden bg-slate-200" onPress={() => router.push('/(tabs)/profile')}>
+            <Image source={{ uri: user?.user_metadata?.avatar_url || 'https://i.pravatar.cc/100?img=1' }} className="w-full h-full" />
           </TouchableOpacity>
         </View>
 
-        <ScrollView className="flex-1" contentContainerStyle={{ padding: 24 }}>
-          {categories.length > 0 && (
-            <View className="mb-6">
-              <Text className="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider">Category</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-                {categories.map((cat) => (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+
+          {/* Action Header */}
+          <View className="px-6 py-6 flex-row justify-between items-center">
+            <View>
+              <Text className="text-[10px] font-bold text-slate-500 tracking-[2px] uppercase mb-1.5">New Entry</Text>
+              <View className="flex-row items-center">
+                <Clock size={10} color="#94a3b8" />
+                <Text className="text-[9px] font-bold text-slate-400 uppercase tracking-wider ml-1.5">Draft saved 2 mins ago</Text>
+              </View>
+            </View>
+            <View className="flex-row items-center">
+              <TouchableOpacity className="mr-5">
+                <Text className="text-xs font-bold text-slate-600">Save Draft</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="bg-[#047857] px-6 py-2.5 rounded-full"
+                onPress={handlePost}
+                disabled={loading || !content.trim() || !title.trim()}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Text className="text-white text-xs font-bold tracking-wider">Publish</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Form Content */}
+          <View className="px-6 mt-4">
+            <TextInput
+              className="text-[42px] font-bold text-slate-900 leading-tight mb-2"
+              placeholder="Title of your"
+              placeholderTextColor="#cbd5e1"
+              value={title}
+              onChangeText={setTitle}
+              multiline
+              style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}
+            />
+
+            <View className="w-16 h-[1px] bg-slate-200 mt-4 mb-8" />
+
+            <TextInput
+              className="text-[22px] text-slate-800 leading-relaxed"
+              style={{ minHeight: 200, fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}
+              multiline
+              placeholder="Start your narrative here. Let the words breathe..."
+              placeholderTextColor="#cbd5e1"
+              value={content}
+              onChangeText={setContent}
+              textAlignVertical="top"
+            />
+          </View>
+
+          {/* Floating Text Tools Wrapper */}
+          <View className="items-center w-full mt-4 mb-16 z-10">
+            <View className="bg-white px-6 py-4 rounded-full flex-row items-center gap-x-6 drop-shadow-xl shadow-[0_10px_30px_-5px_rgba(0,0,0,0.1)] border border-slate-100">
+              <TouchableOpacity><Bold size={18} color="#333" strokeWidth={3} /></TouchableOpacity>
+              <TouchableOpacity><Italic size={18} color="#333" strokeWidth={3} /></TouchableOpacity>
+              <View className="w-[1px] h-6 bg-slate-200" />
+              <TouchableOpacity><Quote size={18} fill="#333" color="#333" /></TouchableOpacity>
+              <TouchableOpacity><ImageIcon size={18} color="#333" /></TouchableOpacity>
+              <TouchableOpacity><Link size={18} color="#333" /></TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Categorize Block */}
+          <View className="px-6 pb-8 border-slate-100">
+            <View className="flex-row items-center mb-6">
+              <Tag size={16} color="#475569" fill="#94a3b8" />
+              <Text className="text-[11px] font-bold text-slate-700 tracking-[1.5px] ml-2 uppercase">Categorize Your Story</Text>
+            </View>
+
+            <Text className="text-[9px] font-bold text-slate-400 tracking-[1.5px] uppercase mb-4">Suggested For You</Text>
+
+            <View className="flex-row flex-wrap gap-3 mb-6">
+              {categories.map((cat) => {
+                const isActive = categoryId === cat.id;
+                return (
                   <TouchableOpacity
                     key={cat.id}
-                    className={`mr-3 px-5 py-2 rounded-full border ${categoryId === cat.id ? 'bg-indigo-600 border-indigo-600' : 'bg-transparent border-slate-200'}`}
+                    className={`px-4 py-2 bg-transparent rounded-full border flex-row items-center ${isActive ? 'bg-[#E8F3EE] border-[#047857]/20' : 'border-slate-200 bg-white'}`}
                     onPress={() => setCategoryId(cat.id)}
                   >
-                    <Text className={`font-semibold ${categoryId === cat.id ? 'text-white' : 'text-slate-600'}`}>
+                    <Text className={`text-xs ${isActive ? 'text-[#047857] font-bold' : 'text-slate-500 font-medium'}`}>
                       {cat.name}
                     </Text>
+                    {isActive && <Text className="text-[#047857] font-bold text-xs ml-1.5 pt-[1px]">×</Text>}
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
+                );
+              })}
 
-          <TextInput
-            className="text-4xl font-extrabold text-slate-900 mb-6 leading-tight"
-            placeholder="Title"
-            placeholderTextColor="#cbd5e1"
-            value={title}
-            onChangeText={setTitle}
-            multiline
-          />
-          
-          <TextInput
-            className="text-xl text-slate-800 leading-relaxed"
-            style={{ minHeight: 400 }}
-            multiline
-            placeholder="Share what is on your heart today..."
-            placeholderTextColor="#94a3b8"
-            value={content}
-            onChangeText={setContent}
-            textAlignVertical="top"
-          />
+              <TouchableOpacity className="px-4 py-2 rounded-full border border-slate-200 border-dashed flex-row items-center bg-white">
+                <Text className="text-xs font-medium text-slate-400 mr-2">Add a tag...</Text>
+                <Plus size={14} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Publishing Settings */}
+          <View className="px-6 mb-12">
+            <View className="bg-[#F3F4F6] rounded-[24px] p-6 relative">
+              <View className="absolute top-6 right-6">
+                <Settings size={20} color="#94a3b8" />
+              </View>
+              <Text className="text-sm font-bold text-slate-900 mb-1">Publishing Settings</Text>
+              <Text className="text-xs font-serif text-slate-500 mb-6 pr-8 leading-relaxed">Control who sees your words in The Sanctuary.</Text>
+
+              <TouchableOpacity className="bg-white rounded-2xl p-4 flex-row items-center justify-between mb-3 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]">
+                <View className="flex-row items-center">
+                  <Globe size={18} color="#047857" />
+                  <Text className="text-[13px] font-bold text-slate-800 ml-3">Public Stream</Text>
+                </View>
+                <View className="w-[18px] h-[18px] rounded-full border-[5px] border-[#047857] bg-white items-center justify-center p-0.5" />
+              </TouchableOpacity>
+
+              <TouchableOpacity className="bg-white rounded-2xl p-4 flex-row items-center justify-between shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)]">
+                <View className="flex-row items-center">
+                  <Lock size={18} color="#333" />
+                  <Text className="text-[13px] font-bold text-slate-800 ml-3">Private Garden</Text>
+                </View>
+                <View className="w-[18px] h-[18px] rounded-full border border-slate-300 bg-white" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

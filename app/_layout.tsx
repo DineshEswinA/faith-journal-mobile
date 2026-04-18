@@ -1,3 +1,4 @@
+import '@/lib/i18n';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -6,13 +7,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import './global.css';
-import '@/lib/i18n';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { useAuthStore } from '@/store/authStore';
 
 export {
-  ErrorBoundary,
+  ErrorBoundary
 } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
@@ -53,10 +53,10 @@ function RootLayoutNav() {
     if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inTabsGroup = segments[0] === '(tabs)';
 
-    if (!session && !inAuthGroup) {
-      // Avoid firing before layout mount
-      setTimeout(() => router.replace('/(auth)/welcome'), 0);
+    if (!session && inTabsGroup) {
+      setTimeout(() => router.replace('/(auth)/sign-in'), 0);
     } else if (session && inAuthGroup) {
       setTimeout(() => router.replace('/(tabs)'), 0);
     }
@@ -64,9 +64,14 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack initialRouteName="splash">
+        <Stack.Screen name="splash" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="author/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>

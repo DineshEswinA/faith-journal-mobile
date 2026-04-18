@@ -1,9 +1,9 @@
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogIn } from 'lucide-react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -24,57 +24,135 @@ export default function SignInScreen() {
     setLoading(false);
   }
 
-  async function signInWithGoogle() {
-    // Add logic for native Google OAuth using Expo AuthSession or specific native packages
-    Alert.alert('Coming Soon', 'Google OAuth integration depends on Expo dev client setup.');
+  async function signInWithProvider(provider: string) {
+    Alert.alert('Coming Soon', `${provider} OAuth integration depends on Expo dev client setup.`);
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white p-6">
-      <View className="flex-1 justify-center">
-        <Text className="text-3xl font-bold text-slate-800 mb-2">Welcome Back</Text>
-        <Text className="text-slate-500 mb-8">Sign in to continue your spiritual journey.</Text>
-        
-        <View className="gap-y-4">
-          <TextInput
-            className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200"
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <TextInput
-            className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200"
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          
-          <TouchableOpacity 
-            className="bg-indigo-600 w-full p-4 rounded-xl items-center mt-2"
-            onPress={signInWithEmail}
-            disabled={loading}
-          >
-            <Text className="text-white font-bold text-lg">{loading ? 'Signing In...' : 'Sign In'}</Text>
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView className="flex-1 bg-[#FAFAFA]" edges={['top', 'bottom']}>
+      {/* Top Green Accent Line */}
+      <View className="h-1.5 bg-[#047857] w-full absolute top-0 z-10" />
 
-        <View className="flex-row items-center my-6">
-          <View className="flex-1 h-px bg-slate-200" />
-          <Text className="mx-4 text-slate-400">or</Text>
-          <View className="flex-1 h-px bg-slate-200" />
-        </View>
-
-        <TouchableOpacity 
-          className="bg-red-50 w-full p-4 rounded-xl flex-row justify-center items-center gap-x-2 border border-red-100"
-          onPress={signInWithGoogle}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
         >
-          <LogIn color="#dc2626" size={20} />
-          <Text className="text-red-600 font-semibold text-lg">Continue with Google</Text>
-        </TouchableOpacity>
-      </View>
+          <View className="px-6 pt-12 pb-4 flex-1 justify-between">
+            <View>
+              <Text className="text-[#047857] font-bold uppercase tracking-[3px] text-xs mb-12">
+                Faith Journal
+              </Text>
+
+              <View className="mb-12">
+                <Text 
+                  className="text-5xl text-slate-900 mb-3" 
+                  style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}
+                >
+                  Welcome back
+                </Text>
+                <Text className="text-slate-600 text-base">
+                  Enter your credentials to access your library.
+                </Text>
+              </View>
+              
+              <View className="gap-y-6">
+                {/* Email Input */}
+                <View>
+                  <Text className="text-xs font-bold text-slate-800 tracking-wider mb-2">EMAIL ADDRESS</Text>
+                  <TextInput
+                    className="w-full bg-[#f1f5f9] p-4 rounded-xl text-base text-slate-800"
+                    placeholder="name@sanctuary.com"
+                    placeholderTextColor="#94a3b8"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                  />
+                </View>
+
+                {/* Password Input */}
+                <View>
+                  <View className="flex-row justify-between items-center mb-2">
+                    <Text className="text-xs font-bold text-slate-800 tracking-wider">PASSWORD</Text>
+                    <TouchableOpacity onPress={() => Alert.alert('Coming Soon', 'Password reset function')}>
+                      <Text className="text-[#047857] text-xs font-medium">Forgot password?</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <TextInput
+                    className="w-full bg-[#f1f5f9] p-4 rounded-xl text-base text-slate-800"
+                    placeholder="••••••••"
+                    placeholderTextColor="#94a3b8"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                  />
+                </View>
+                
+                {/* Sign In Button */}
+                <TouchableOpacity 
+                  className="bg-[#047857] w-full p-4 rounded-full items-center mt-2 shadow-sm"
+                  onPress={signInWithEmail}
+                  disabled={loading}
+                >
+                  <Text className="text-white font-bold text-lg">{loading ? 'Signing In...' : 'Sign In'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Divider */}
+              <View className="flex-row items-center my-8">
+                <View className="flex-1 h-px bg-slate-200" />
+                <Text className="mx-4 text-xs font-bold text-slate-500 tracking-[2px] uppercase">Or continue with</Text>
+                <View className="flex-1 h-px bg-slate-200" />
+              </View>
+
+              {/* Social Logins */}
+              <View className="flex-row gap-x-4 mb-10">
+                <TouchableOpacity 
+                  className="flex-1 bg-white p-4 rounded-full flex-row justify-center items-center gap-x-3 shadow-sm border border-slate-100"
+                  onPress={() => signInWithProvider('Google')}
+                >
+                  <FontAwesome5 name="google" size={16} color="#333" />
+                  <Text className="text-slate-800 font-bold">Google</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  className="flex-1 bg-white p-4 rounded-full flex-row justify-center items-center gap-x-3 shadow-sm border border-slate-100"
+                  onPress={() => signInWithProvider('Github')}
+                >
+                  <FontAwesome5 name="github" size={16} color="#333" />
+                  <Text className="text-slate-800 font-bold">Github</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Sign Up Link */}
+              <View className="flex-row justify-center items-center">
+                <Text className="text-slate-600 text-base">Don't have an account? </Text>
+                <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
+                  <Text className="text-[#047857] font-bold text-base">Create an entry</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          
+          {/* Bottom Footer */}
+          <View className="px-6 pb-6 pt-4 flex-row justify-between items-center bg-[#FAFAFA]">
+            <View className="flex-row gap-x-6">
+              <TouchableOpacity>
+                <Text className="text-xs font-bold tracking-[1px] text-slate-500">PRIVACY</Text>
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Text className="text-xs font-bold tracking-[1px] text-slate-500">TERMS</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <TouchableOpacity className="bg-slate-500 rounded-full w-5 h-5 items-center justify-center">
+              <Text className="text-white text-[10px] font-bold">?</Text>
+            </TouchableOpacity>
+          </View>
+          
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }

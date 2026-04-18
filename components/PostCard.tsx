@@ -1,73 +1,152 @@
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Heart, MessageCircle } from 'lucide-react-native';
+import { getReadTime } from '@/lib/readTime';
 import { useRouter } from 'expo-router';
+import { Bookmark, Heart, MessageCircle, MoreVertical, Share2, UserPlus } from 'lucide-react-native';
+import { Alert, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 
-interface PostProps {
-  post: {
-    id: string;
-    title?: string;
-    excerpt?: string;
-    content: string | { body: string };
-    likes_count: number;
-    user: {
-      email?: string;
-      username?: string;
-      full_name?: string;
-    };
-    created_at: string;
-    isLiked?: boolean;
-  };
-  onLikePress?: () => void;
-}
+export type PostCardProps = {
+  item: any;
+  index: number;
+  showAuthor?: boolean;
+  isBookmarked?: boolean;
+  onBookmark?: (postId: string) => void;
+  activeMenuPostId?: string | null;
+  onMenuToggle?: (postId: string) => void;
+  onFollow?: () => void;
+  isFollowing?: boolean;
+};
 
-export default function PostCard({ post, onLikePress }: PostProps) {
+export default function PostCard({
+  item,
+  index,
+  showAuthor = true,
+  isBookmarked = false,
+  onBookmark,
+  activeMenuPostId,
+  onMenuToggle,
+  onFollow,
+  isFollowing = false,
+}: PostCardProps) {
   const router = useRouter();
-  
+
+  // Fallback images if actual ones don't exist
+  const coverImg = item.cover_image || `https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&q=80&sig=${item.id || index}`;
+  const catName = item.category || item.categories?.name?.toUpperCase() || 'STORY';
+  const dateStr = item.created_at
+    ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '';
+  const authorAvatar = item.user?.avatar_url || `https://i.pravatar.cc/100?img=${index + 10}`;
+  const authorName = item.user?.full_name || item.user?.username || 'Anonymous';
+
+  const handleCardPress = () => {
+    if (activeMenuPostId) {
+      onMenuToggle?.(item.id);
+    } else {
+      router.push(`/post/${item.id}` as any);
+    }
+  };
+
   return (
-    <TouchableOpacity 
-      className="bg-white mb-6 pb-6 border-b border-slate-100"
-      onPress={() => router.push(`/post/${post.id}`)}
-      activeOpacity={0.8}
-    >
-      <View className="flex-row items-center mb-3">
-        <View className="w-10 h-10 bg-indigo-100 rounded-full items-center justify-center mr-3">
-          <Text className="text-indigo-700 font-bold">
-            {(post.user?.full_name || post.user?.username || post.user?.email) ? (post.user.full_name || post.user.username || post.user.email!).substring(0, 2).toUpperCase() : '?'}
-          </Text>
+    <View className="mb-5 px-6">
+      <TouchableOpacity activeOpacity={0.85} onPress={handleCardPress}>
+        <View className="w-full h-52 rounded-2xl overflow-hidden bg-slate-200 mb-4 shadow-sm">
+          <Image source={{ uri: coverImg }} className="w-full h-full" resizeMode="cover" />
         </View>
-        <View>
-          <Text className="font-bold text-slate-800">{post.user?.full_name || post.user?.username || post.user?.email || 'Unknown User'}</Text>
-          <Text className="text-xs text-slate-400">
-            {new Date(post.created_at).toLocaleDateString()}
+
+        {showAuthor && (
+          <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center gap-x-3">
+              <View className="w-6 h-6 rounded-full bg-slate-300 overflow-hidden">
+                <Image source={{ uri: authorAvatar }} className="w-full h-full" />
+              </View>
+              <Text className="text-[10px] font-bold text-slate-800">{authorName}</Text>
+              <View className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+              <Text className="text-[9px] font-bold text-slate-400 uppercase tracking-[1px]">{getReadTime(item)}</Text>
+            </View>
+            <Text className="text-[9px] font-bold text-slate-400 uppercase tracking-[1px]">{dateStr}</Text>
+          </View>
+        )}
+
+        <Text className="text-[9px] font-bold text-[#047857] tracking-[2px] uppercase mb-2">{catName}</Text>
+
+        <Text
+          className="text-[22px] font-bold text-slate-900 leading-snug mb-2"
+          style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}
+          numberOfLines={2}
+        >
+          {item.title}
+        </Text>
+
+        {item.excerpt ? (
+          <Text className="text-[14px] font-serif text-slate-500 leading-relaxed mb-1" numberOfLines={2}>
+            {item.excerpt}
           </Text>
-        </View>
-      </View>
-      
-      {post.title && (
-        <Text className="text-2xl font-extrabold text-slate-900 mb-2 leading-tight tracking-tight">
-          {post.title}
+        ) : null}
+      </TouchableOpacity>
+
+      {!showAuthor && (
+        <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 mt-1">
+          {dateStr}{dateStr ? '  ·  ' : ''}{getReadTime(item)}
         </Text>
       )}
-      <Text className="text-slate-600 text-[17px] mb-5 leading-relaxed" numberOfLines={3}>
-        {post.excerpt || (typeof post.content === 'object' ? (post.content as any)?.body : post.content)}
-      </Text>
-      
-      <View className="flex-row items-center border-t border-slate-50 pt-3">
-        <TouchableOpacity 
-          className="flex-row items-center mr-6"
-          onPress={onLikePress}
-        >
-          <Heart size={20} color={post.isLiked ? "#ef4444" : "#94a3b8"} fill={post.isLiked ? "#ef4444" : "transparent"} />
-          <Text className={`ml-2 font-medium ${post.isLiked ? 'text-red-500' : 'text-slate-500'}`}>
-            {post.likes_count || 0}
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity className="flex-row items-center">
-          <MessageCircle size={20} color="#94a3b8" />
-          <Text className="ml-2 font-medium text-slate-500">Reply</Text>
-        </TouchableOpacity>
+
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-x-4">
+          <View className="flex-row items-center gap-x-1.5">
+            <Heart size={16} color="#94a3b8" />
+            <Text className="text-[11px] font-bold text-slate-500">{item.likes_count ?? item.likes?.[0]?.count ?? 0}</Text>
+          </View>
+          <View className="flex-row items-center gap-x-1.5">
+            <MessageCircle size={16} color="#94a3b8" />
+            <Text className="text-[11px] font-bold text-slate-500">{item.comments_count ?? item.comments?.[0]?.count ?? 0}</Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center gap-x-5">
+          <TouchableOpacity
+            className="flex-row items-center gap-x-1.5"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            onPress={() => onBookmark ? onBookmark(item.id) : null}
+          >
+            <Bookmark
+              size={16}
+              color={isBookmarked ? '#047857' : '#94a3b8'}
+              fill={isBookmarked ? '#047857' : 'transparent'}
+            />
+            <Text className={`text-[11px] font-bold ${isBookmarked ? 'text-[#047857]' : 'text-slate-500'}`}>
+              {item.bookmarks_count ?? item.bookmarks?.[0]?.count ?? 0}
+            </Text>
+          </TouchableOpacity>
+          <View className="relative">
+            <TouchableOpacity
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              onPress={() => onMenuToggle ? onMenuToggle(item.id) : null}
+            >
+              <MoreVertical size={16} color="#94a3b8" />
+            </TouchableOpacity>
+
+            {activeMenuPostId === item.id && (
+              <View className="absolute right-0 bottom-6 bg-white rounded-xl shadow-lg shadow-black/20 border border-slate-100 py-1 z-50 w-44" style={{ elevation: 5 }}>
+                <TouchableOpacity className="flex-row items-center px-4 py-3 border-b border-slate-50 gap-x-3" onPress={() => {
+                  onMenuToggle?.(item.id);
+                  Alert.alert('Share', 'Sharing options...');
+                }}>
+                  <Share2 size={16} color="#333" />
+                  <Text className="text-[13px] font-medium text-slate-700">Share</Text>
+                </TouchableOpacity>
+                {onFollow && (
+                  <TouchableOpacity className="flex-row items-center px-4 py-3 gap-x-3" onPress={() => {
+                    onMenuToggle?.(item.id);
+                    onFollow();
+                  }}>
+                    <UserPlus size={16} color="#333" />
+                    <Text className="text-[13px] font-medium text-slate-700">{isFollowing ? 'Unfollow' : 'Follow'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
+        </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }

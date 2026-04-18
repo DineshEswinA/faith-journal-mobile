@@ -1,27 +1,32 @@
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, Alert, Keyboard } from 'react-native';
-import { useEffect, useState } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { getReadTime } from '@/lib/readTime';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
-import { ChevronLeft, Heart, MessageCircle, Send } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Bookmark, ChevronLeft, Heart, MessageCircle, Send, Share2 } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PostCard from '@/components/PostCard';
 
 export default function PostDetailScreen() {
   const { id } = useLocalSearchParams();
   const [post, setPost] = useState<any>(null);
+  const [suggestedPosts, setSuggestedPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const { user } = useAuthStore();
   const router = useRouter();
 
   const loadPost = async () => {
     const { data } = await supabase
       .from('posts')
-      .select('*, likes(count), profiles(username, full_name), comments(*, profiles(username, full_name))')
+      .select('*, likes(count), profiles(username, full_name, bio, avatar_url), comments(*, profiles(username, full_name)), categories(name)')
       .eq('id', id)
       .single();
-      
+
     if (data?.comments) {
       data.comments.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
@@ -36,35 +41,68 @@ export default function PostDetailScreen() {
       isLiked = !!likeData;
     }
 
-    setPost(data ? { 
-      ...data, 
+    setPost(data ? {
+      ...data,
       isLiked,
-      likes_count: data.likes?.[0]?.count || 0, 
+      likes_count: data.likes?.[0]?.count || 0,
       user_id: data.author_id,
-      user: data.profiles 
+      user: data.profiles,
+      category: data.categories?.name || 'UNCATEGORIZED',
     } : null);
+
+    // Fetch related posts
+    const { data: suggestions } = await supabase
+      .from('posts')
+      .select('*, likes(count), comments(count), bookmarks(count), categories(name)')
+      .neq('id', id)
+      .limit(3);
+    setSuggestedPosts(suggestions || []);
+
     setLoading(false);
+  };
+
+  const loadBookmarkStatus = async () => {
+    if (!user || !id) return;
+    const { data } = await supabase
+      .from('bookmarks')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('post_id', id)
+      .single();
+    setIsBookmarked(!!data);
   };
 
   useEffect(() => {
     if (!id) return;
     loadPost();
+    loadBookmarkStatus();
   }, [id, user?.id]);
 
   const handleLike = async () => {
     if (!user) return;
     const isCurrentlyLiked = post.isLiked;
-    
-    setPost({ 
-      ...post, 
-      isLiked: !isCurrentlyLiked, 
-      likes_count: post.likes_count + (isCurrentlyLiked ? -1 : 1) 
+
+    setPost({
+      ...post,
+      isLiked: !isCurrentlyLiked,
+      likes_count: post.likes_count + (isCurrentlyLiked ? -1 : 1)
     });
 
     if (isCurrentlyLiked) {
       await supabase.from('likes').delete().match({ post_id: id, user_id: user.id });
     } else {
       await supabase.from('likes').insert({ post_id: id, user_id: user.id });
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!user || !id) return;
+    if (isBookmarked) {
+      await supabase.from('bookmarks').delete().match({ user_id: user.id, post_id: id });
+      setIsBookmarked(false);
+    } else {
+      await supabase.from('bookmarks').insert({ user_id: user.id, post_id: id });
+      setIsBookmarked(true);
     }
   };
 
@@ -94,116 +132,250 @@ export default function PostDetailScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#4f46e5" />
+      <View className="flex-1 bg-[#FAFAFA] items-center justify-center">
+        <ActivityIndicator size="large" color="#047857" />
       </View>
     );
   }
 
   if (!post) {
     return (
-      <View className="flex-1 bg-white items-center justify-center">
-        <Text>Post not found</Text>
+      <View className="flex-1 bg-[#FAFAFA] items-center justify-center">
+        <Text className="font-serif text-slate-500">The requested entry could not be found.</Text>
+        <TouchableOpacity className="mt-4 px-6 py-2 bg-[#047857] rounded-full" onPress={() => router.back()}>
+          <Text className="text-white font-bold tracking-wider">GO BACK</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
+  const postContent = typeof post.content === 'object' ? post.content?.body : post.content;
+  // First letter for a pseudo drop-cap effect or simply keeping it clean
+  const cleanContent = postContent || "No content available.";
+  const displayImage = post.cover_image || `https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?q=80&w=3264&auto=format&fit=crop`;
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <View className="flex-row items-center px-4 py-2 border-b border-slate-100">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <ChevronLeft size={28} color="#0f172a" />
+    <SafeAreaView edges={['top']} className="flex-1 bg-[#FAFAFA]">
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+
+        {/* Custom Header */}
+        <View className="bg-[#FAFAFA] flex-row justify-between items-center px-6 py-4 border-b border-slate-100">
+          <TouchableOpacity className="w-8 justify-center" onPress={() => router.back()}>
+            <ChevronLeft color="#333" size={28} />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-slate-800">Entry</Text>
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-2xl font-bold text-slate-900 text-center" numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
+              Faith Journal
+            </Text>
+          </View>
         </View>
 
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-          <View className="flex-row items-center mb-6">
-            <TouchableOpacity 
-              className="w-12 h-12 bg-indigo-100 rounded-full items-center justify-center mr-4"
-              onPress={() => router.push(`/user/${post.user_id}`)}
-            >
-              <Text className="text-indigo-700 font-bold text-lg">
-                {(post.user?.full_name || post.user?.username) ? (post.user.full_name || post.user.username).substring(0, 1).toUpperCase() : 'U'}
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+
+          <View className="px-6 pt-10 pb-6 items-center">
+            <Text className="text-[10px] font-bold text-[#047857] tracking-[2px] uppercase mb-4">{post.category}</Text>
+            <Text className="text-[32px] font-bold text-slate-900 text-center leading-tight mb-6" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+              {post.title}
+            </Text>
+
+            <View className="flex-row items-center justify-center gap-x-3 mb-6">
+              <View className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100">
+                <Image source={{ uri: post.user?.avatar_url || 'https://i.pravatar.cc/100?img=3' }} className="w-full h-full" />
+              </View>
+              <TouchableOpacity onPress={() => router.push(`/author/${post.author_id}` as any)}>
+                <Text className="text-[10px] font-bold text-slate-800 uppercase tracking-[1px]">{post.user?.full_name || post.user?.username || 'Unknown Author'}</Text>
+              </TouchableOpacity>
+              <View className="w-0.5 h-0.5 rounded-full bg-slate-400" />
+              <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-[1px]">
+                {post.created_at ? new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase() : ''}
               </Text>
-            </TouchableOpacity>
-            <View>
-              <Text className="font-bold text-slate-800 text-lg">{post.user?.full_name || post.user?.username || 'Unknown Author'}</Text>
-              <Text className="text-slate-400">
-                {new Date(post.created_at).toLocaleString()}
-              </Text>
+              <View className="w-0.5 h-0.5 rounded-full bg-slate-400" />
+              <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-[1px]">{getReadTime(post)}</Text>
             </View>
           </View>
-          
-          <Text className="text-2xl font-bold text-slate-900 mb-2">{post.title}</Text>
-          <Text className="text-slate-800 text-lg mb-8 leading-relaxed">
-            {typeof post.content === 'object' ? post.content?.body : post.content}
-          </Text>
-          
-          <View className="flex-row items-center border-t border-b border-slate-100 py-4 mb-6">
-          <TouchableOpacity className="flex-row items-center mr-8" onPress={handleLike}>
-            <Heart size={24} color={post.isLiked ? "#ef4444" : "#94a3b8"} fill={post.isLiked ? "#ef4444" : "transparent"} />
-            <Text className={`ml-2 font-medium text-lg ${post.isLiked ? 'text-red-500' : 'text-slate-500'}`}>{post.likes_count || 0}</Text>
-          </TouchableOpacity>
-            
-            <TouchableOpacity className="flex-row items-center">
-              <MessageCircle size={24} color="#94a3b8" />
-              <Text className="ml-2 font-medium text-slate-500 text-lg">Reply</Text>
-            </TouchableOpacity>
+
+          <View className="px-6 mb-8">
+            <View className="w-full h-[220px] rounded-lg overflow-hidden bg-slate-200">
+              <Image source={{ uri: displayImage }} className="w-full h-full" resizeMode="cover" />
+            </View>
+            <Text className="text-center font-serif italic text-xs text-slate-400 mt-3">Photography by Art Unsplash</Text>
           </View>
 
-          <View className="mb-4">
-            <Text className="text-xl font-bold text-slate-800 mb-4">Comments</Text>
-            {!post.comments || post.comments.length === 0 ? (
-              <Text className="text-slate-500">No comments yet. Be the first to reply!</Text>
-            ) : (
-              post.comments?.map((comment: any) => (
-                <View key={comment.id} className="mb-4 bg-slate-50 p-4 rounded-xl">
-                  <View className="flex-row items-center mb-2">
-                    <View className="w-8 h-8 bg-indigo-100 rounded-full items-center justify-center mr-2">
-                      <Text className="text-indigo-700 font-bold text-xs">
-                        {(comment.profiles?.full_name || comment.profiles?.username) ? (comment.profiles.full_name || comment.profiles.username).substring(0, 1).toUpperCase() : '?'}
-                      </Text>
-                    </View>
-                    <Text className="font-bold text-slate-800 mr-2">
-                      {comment.profiles?.full_name || comment.profiles?.username || 'Unknown'}
-                    </Text>
-                    <Text className="text-xs text-slate-400">
-                      {new Date(comment.created_at).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <Text className="text-slate-700 leading-relaxed">{comment.content}</Text>
+          <View className="px-6 mb-12">
+            <Text className="text-[17px] text-slate-800 leading-[32px]" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+              {cleanContent}
+            </Text>
+          </View>
+
+          {/* Action / Reaction Bar */}
+          <View className="px-6 flex-row items-center justify-between py-6 border-t border-slate-200 mb-10">
+            <View className="flex-row gap-x-6 items-center">
+              <TouchableOpacity className="flex-row items-center gap-x-2" onPress={handleLike}>
+                <Heart size={20} color={post.isLiked ? "#047857" : "#64748b"} fill={post.isLiked ? "#047857" : "transparent"} />
+                {post.likes_count > 0 && <Text className="font-bold text-slate-500 text-xs">{post.likes_count}</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity className="flex-row items-center gap-x-2" onPress={() => setShowComments(!showComments)}>
+                <MessageCircle size={20} color="#64748b" />
+                {post.comments?.length > 0 && <Text className="font-bold text-slate-500 text-xs">{post.comments.length}</Text>}
+              </TouchableOpacity>
+            </View>
+            <View className="flex-row gap-x-6 items-center">
+              <TouchableOpacity onPress={handleBookmark}>
+                <Bookmark size={20} color={isBookmarked ? '#047857' : '#64748b'} fill={isBookmarked ? '#047857' : 'transparent'} />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Share2 size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Author Block */}
+          <View className="px-6 mb-12">
+            <View className="bg-[#F3F4F6] rounded-[24px] p-6">
+              <TouchableOpacity onPress={() => router.push(`/author/${post.author_id}` as any)} className="flex-row items-center gap-x-4 mb-4">
+                <View className="w-14 h-14 rounded-xl overflow-hidden bg-slate-300">
+                  <Image source={{ uri: post.user?.avatar_url || 'https://i.pravatar.cc/100?img=3' }} className="w-full h-full" />
                 </View>
-              ))
+                <View className="flex-1">
+                  <Text className="text-lg font-bold text-slate-900" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+                    {post.user?.full_name || post.user?.username || 'Unknown Author'}
+                  </Text>
+                  <Text className="text-[9px] font-bold text-[#047857] tracking-[2px] uppercase">AUTHOR & CREATOR</Text>
+                </View>
+              </TouchableOpacity>
+              <Text className="font-serif text-sm text-slate-600 leading-relaxed mb-4">
+                {post.user?.bio || "A passionate writer dedicating space to thoughtful narratives and exploring the intersection between daily life and eternal truths. Seeking to map the human experience in words."}
+              </Text>
+              <TouchableOpacity onPress={() => router.push(`/author/${post.author_id}` as any)}>
+                <Text className="text-xs font-bold text-slate-800 tracking-wider">View all articles -{'>'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Continue Your Journey (Similar Posts) */}
+          <View className="bg-[#FAFAFA] pt-8 px-6 border-t border-slate-100">
+            <Text className="text-2xl font-bold text-slate-900 mb-8" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+              Continue Your{'\n'}Journey
+            </Text>
+
+            {suggestedPosts.slice(0, 2).map((sPost: any, index: number) => (
+              <View key={sPost.id} className="mx-[-24px]">
+                <PostCard
+                  item={sPost}
+                  index={index}
+                  showAuthor={true}
+                />
+                {index < suggestedPosts.slice(0, 2).length - 1 && (
+                  <View className="h-[1px] bg-slate-200 mx-6 mb-10 mt-2" />
+                )}
+              </View>
+            ))}
+
+            {/* Green Promo Item inline */}
+            <View className="bg-[#047857] rounded-xl p-6 mb-8 mt-2">
+              <Text className="text-3xl font-bold text-white mb-2" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+                Start your own story
+              </Text>
+              <Text className="text-white/80 font-serif text-sm leading-relaxed mb-6">
+                Join our community of intentional creators and publish your thoughts.
+              </Text>
+              <TouchableOpacity className="bg-white rounded-full py-3 px-6 self-start" onPress={() => router.push('/(tabs)/create')}>
+                <Text className="text-[#047857] font-bold text-xs tracking-widest uppercase">WRITE TO WRITE</Text>
+              </TouchableOpacity>
+            </View>
+
+            {suggestedPosts[2] && (
+              <TouchableOpacity className="mb-8" onPress={() => router.push(`/post/${suggestedPosts[2].id}`)} activeOpacity={0.8}>
+                <View className="w-full h-48 rounded-xl overflow-hidden bg-slate-200 mb-4">
+                  <Image source={{ uri: `https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&q=80&sig=4` }} className="w-full h-full" />
+                </View>
+                <Text className="text-[9px] font-bold text-[#047857] tracking-[2px] uppercase mb-2">
+                  {suggestedPosts[2].categories?.name || 'UNCATEGORIZED'}
+                </Text>
+                <Text className="text-[22px] font-bold text-slate-900 mb-2 leading-snug" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+                  {suggestedPosts[2].title}
+                </Text>
+                <Text className="text-sm font-serif text-slate-600 leading-relaxed line-clamp-2">
+                  {suggestedPosts[2].excerpt || "A quiet exploration of the things that matter most."}
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
+
+          {/* Bottom Footer block */}
+          <View className="bg-[#E5E7EB] pt-12 pb-16 px-6 items-center border-t border-slate-200 mt-10">
+            <Text className="text-2xl font-bold text-slate-800 mb-8" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
+              Faith Journal
+            </Text>
+            <View className="flex-row gap-x-6 mb-8">
+              <Text className="text-[10px] font-bold text-slate-600 tracking-[2px] uppercase">ABOUT</Text>
+              <Text className="text-[10px] font-bold text-slate-600 tracking-[2px] uppercase">ARCHIVE</Text>
+              <Text className="text-[10px] font-bold text-slate-600 tracking-[2px] uppercase">PRIVACY</Text>
+              <Text className="text-[10px] font-bold text-slate-600 tracking-[2px] uppercase">CONTACT</Text>
+            </View>
+            <View className="bg-white rounded-full flex-row items-center px-4 py-2 border border-slate-300">
+              <View className="flex-row items-center gap-x-2 border-r border-slate-200 pr-4 mr-4">
+                <View className="p-1.5 bg-slate-800 rounded">
+                  <Text className="text-[8px] font-bold text-white tracking-wider">RSS</Text>
+                </View>
+              </View>
+              <View className="flex-row items-center gap-x-2 border-r border-slate-200 pr-4 mr-4">
+                <Text className="text-[8px] font-bold text-slate-800 tracking-[1.5px] uppercase">TWITTER</Text>
+              </View>
+              <View className="flex-row items-center gap-x-2">
+                <Text className="text-[8px] font-bold text-slate-800 tracking-[1.5px] uppercase">HOME</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Lazy Comments Section (Toggleable) */}
+          {showComments && (
+            <View className="px-6 py-8 bg-white border-t border-slate-100">
+              <Text className="text-xl font-bold text-slate-800 mb-6 font-serif">Comments</Text>
+
+              <View className="flex-row items-center mb-6">
+                <TextInput
+                  className="flex-1 bg-slate-50 pt-3 pb-3 px-5 rounded-full border border-slate-200 text-slate-800 mr-3 h-12"
+                  placeholder="Share your thoughts..."
+                  value={newComment}
+                  onChangeText={setNewComment}
+                />
+                <TouchableOpacity
+                  className={`w-12 h-12 rounded-full items-center justify-center ${newComment.trim() ? 'bg-[#047857]' : 'bg-slate-200'}`}
+                  onPress={submitComment}
+                  disabled={!newComment.trim() || submittingComment}
+                >
+                  {submittingComment ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Send size={18} color={newComment.trim() ? "#fff" : "#94a3b8"} />
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {!post.comments || post.comments.length === 0 ? (
+                <Text className="text-slate-500 font-serif italic text-center">No thoughts shared yet.</Text>
+              ) : (
+                post.comments?.map((comment: any) => (
+                  <View key={comment.id} className="mb-4 bg-slate-50 p-5 rounded-2xl">
+                    <View className="flex-row items-center mb-3">
+                      <View className="w-8 h-8 bg-slate-200 rounded-full items-center justify-center mr-3 overflow-hidden">
+                        <Image source={{ uri: `https://i.pravatar.cc/100?img=${comment.user_id.charCodeAt(0) % 70}` }} className="w-full h-full" />
+                      </View>
+                      <Text className="font-bold text-slate-800 mr-2 text-sm">
+                        {comment.profiles?.full_name || comment.profiles?.username || 'Unknown'}
+                      </Text>
+                      <Text className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                        {new Date(comment.created_at).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <Text className="text-slate-700 leading-relaxed font-serif text-sm">{comment.content}</Text>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
         </ScrollView>
-        
-        <View className="p-4 bg-white flex-row items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] elevation-10">
-          <TextInput
-            className="flex-1 bg-slate-50 pt-3 pb-3 px-4 rounded-full border border-slate-200 text-slate-800 mr-2 max-h-32"
-            placeholder="Write a response..."
-            value={newComment}
-            onChangeText={setNewComment}
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity 
-            className={`w-12 h-12 rounded-full items-center justify-center ${newComment.trim() ? 'bg-indigo-600' : 'bg-slate-200'}`}
-            onPress={submitComment}
-            disabled={!newComment.trim() || submittingComment}
-          >
-            {submittingComment ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Send size={20} color={newComment.trim() ? "#fff" : "#94a3b8"} />
-            )}
-          </TouchableOpacity>
-        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
