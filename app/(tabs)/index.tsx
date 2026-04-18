@@ -16,10 +16,13 @@ export default function HomeScreen() {
         .from('posts')
         .select(`
           id,
+          title,
+          excerpt,
           content,
           created_at,
-          likes_count,
-          user_id
+          likes(count),
+          author_id,
+          profiles(username, full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -28,7 +31,24 @@ export default function HomeScreen() {
         return;
       }
 
-      setPosts(data || []);
+      let userLikes = new Set();
+      if (user && data && data.length > 0) {
+        const postIds = data.map(p => p.id);
+        const { data: likesData } = await supabase
+          .from('likes')
+          .select('post_id')
+          .eq('user_id', user.id)
+          .in('post_id', postIds);
+        userLikes = new Set(likesData?.map(l => l.post_id) || []);
+      }
+
+      setPosts((data || []).map((post: any) => ({
+        ...post,
+        isLiked: userLikes.has(post.id),
+        likes_count: post.likes?.[0]?.count || 0,
+        user_id: post.author_id,
+        user: post.profiles || {}
+      })));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -37,7 +57,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [user?.id]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);

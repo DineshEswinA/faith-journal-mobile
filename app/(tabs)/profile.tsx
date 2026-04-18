@@ -21,8 +21,8 @@ export default function ProfileScreen() {
       // Load user's posts
       const { data: postsData } = await supabase
         .from('posts')
-        .select('*')
-        .eq('user_id', user.id)
+        .select('*, likes(count), profiles(username, full_name)')
+        .eq('author_id', user.id)
         .order('created_at', { ascending: false });
 
       // Load counts (Using rough estimates or explicit count queries)
@@ -101,7 +101,14 @@ export default function ProfileScreen() {
           <Text className="text-center text-slate-400 mt-10">You haven't posted yet.</Text>
         ) : (
           posts.map(post => (
-            <PostCard key={post.id} post={{...post, user: {email: user?.email || ''} }} />
+            <PostCard 
+              key={post.id} 
+              post={{
+                ...post, 
+                user: { email: user?.email || '', username: post.profiles?.username, full_name: post.profiles?.full_name }, 
+                likes_count: post.likes?.[0]?.count || 0 
+              }} 
+            />
           ))
         )}
       </ScrollView>

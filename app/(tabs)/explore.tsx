@@ -14,9 +14,9 @@ export default function ExploreScreen() {
     setLoading(true);
     // Assuming a 'profiles' or public user views table
     const { data } = await supabase
-      .from('users_view') // Placeholder: typically developers expose a public view or table
-      .select('id, email, full_name')
-      .ilike('email', `%${search}%`)
+      .from('profiles')
+      .select('id:user_id, username, full_name, avatar_url')
+      .ilike('username', `%${search}%`)
       .limit(20);
       
     // Because I don't know the exact schema for public user info, 
@@ -69,10 +69,10 @@ export default function ExploreScreen() {
               <View className="flex-row items-center">
                 <View className="w-12 h-12 bg-indigo-100 rounded-full items-center justify-center mr-3">
                   <Text className="text-indigo-700 font-bold text-lg">
-                    {item.email ? item.email.substring(0, 1).toUpperCase() : '?'}
+                    {(item.full_name || item.username) ? (item.full_name || item.username).substring(0, 1).toUpperCase() : '?'}
                   </Text>
                 </View>
-                <Text className="font-bold text-slate-800 text-lg">{item.email}</Text>
+                <Text className="font-bold text-slate-800 text-lg">{item.full_name || item.username || 'Anonymous'}</Text>
               </View>
               
               {item.id !== user?.id && (
