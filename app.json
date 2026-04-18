@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "faith-journal-mobile",
-    "slug": "faith-journal-mobile",
+    "name": "faith-journal",
+    "slug": "faith-journal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -22,7 +22,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.faithjournalmobile"
     },
     "web": {
       "bundler": "metro",
