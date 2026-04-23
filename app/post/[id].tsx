@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Bookmark, ChevronLeft, Heart, MessageCircle, Send, Share2 } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '@/components/PostCard';
@@ -17,8 +17,11 @@ export default function PostDetailScreen() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
   const { user } = useAuthStore();
   const router = useRouter();
+  const scrollRef = useRef<ScrollView>(null);
+  const commentSectionY = useRef(0);
 
   const loadPost = async () => {
     const { data } = await supabase
@@ -79,20 +82,38 @@ export default function PostDetailScreen() {
   }, [id, user?.id]);
 
   const handleLike = async () => {
-    if (!user) return;
-    const isCurrentlyLiked = post.isLiked;
-
-    setPost({
-      ...post,
-      isLiked: !isCurrentlyLiked,
-      likes_count: post.likes_count + (isCurrentlyLiked ? -1 : 1)
-    });
-
-    if (isCurrentlyLiked) {
-      await supabase.from('likes').delete().match({ post_id: id, user_id: user.id });
-    } else {
-      await supabase.from('likes').insert({ post_id: id, user_id: user.id });
+    if (!user) {
+      Alert.alert('Sign In Required', 'You must be signed in to like a post.');
+      return;
     }
+    if (isLiking) return;
+
+    const isCurrentlyLiked = post.isLiked;
+    const previousCount = post.likes_count;
+
+    // Optimistic update
+    setIsLiking(true);
+    setPost((prev: any) => ({
+      ...prev,
+      isLiked: !isCurrentlyLiked,
+      likes_count: prev.likes_count + (isCurrentlyLiked ? -1 : 1),
+    }));
+
+    const { error } = isCurrentlyLiked
+      ? await supabase.from('likes').delete().match({ post_id: id, user_id: user.id })
+      : await supabase.from('likes').insert({ post_id: id, user_id: user.id });
+
+    if (error) {
+      // Roll back on failure
+      setPost((prev: any) => ({
+        ...prev,
+        isLiked: isCurrentlyLiked,
+        likes_count: previousCount,
+      }));
+      Alert.alert('Error', 'Could not update like. Please try again.');
+    }
+
+    setIsLiking(false);
   };
 
   const handleBookmark = async () => {
@@ -156,7 +177,11 @@ export default function PostDetailScreen() {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-[#FAFAFA]">
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
 
         {/* Custom Header */}
         <View className="bg-[#FAFAFA] flex-row justify-between items-center px-6 py-4 border-b border-slate-100">
@@ -170,7 +195,13 @@ export default function PostDetailScreen() {
           </View>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+        <ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          contentContainerStyle={{ paddingBottom: 60 }}
+        >
 
           <View className="px-6 pt-10 pb-6 items-center">
             <Text className="text-[10px] font-bold text-[#047857] tracking-[2px] uppercase mb-4">{post.category}</Text>
@@ -210,11 +241,19 @@ export default function PostDetailScreen() {
           {/* Action / Reaction Bar */}
           <View className="px-6 flex-row items-center justify-between py-6 border-t border-slate-200 mb-10">
             <View className="flex-row gap-x-6 items-center">
-              <TouchableOpacity className="flex-row items-center gap-x-2" onPress={handleLike}>
+              <TouchableOpacity className="flex-row items-center gap-x-2" onPress={handleLike} disabled={isLiking}>
                 <Heart size={20} color={post.isLiked ? "#047857" : "#64748b"} fill={post.isLiked ? "#047857" : "transparent"} />
                 {post.likes_count > 0 && <Text className="font-bold text-slate-500 text-xs">{post.likes_count}</Text>}
               </TouchableOpacity>
-              <TouchableOpacity className="flex-row items-center gap-x-2" onPress={() => setShowComments(!showComments)}>
+              <TouchableOpacity className="flex-row items-center gap-x-2" onPress={() => {
+                const next = !showComments;
+                setShowComments(next);
+                if (next) {
+                  setTimeout(() => {
+                    scrollRef.current?.scrollTo({ y: commentSectionY.current, animated: true });
+                  }, 100);
+                }
+              }}>
                 <MessageCircle size={20} color="#64748b" />
                 {post.comments?.length > 0 && <Text className="font-bold text-slate-500 text-xs">{post.comments.length}</Text>}
               </TouchableOpacity>
@@ -302,35 +341,12 @@ export default function PostDetailScreen() {
             )}
           </View>
 
-          {/* Bottom Footer block */}
-          <View className="bg-[#E5E7EB] pt-12 pb-16 px-6 items-center border-t border-slate-200 mt-10">
-            <Text className="text-2xl font-bold text-slate-800 mb-8" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
-              Faith Journal
-            </Text>
-            <View className="flex-row gap-x-6 mb-8">
-              <Text className="text-[10px] font-bold text-slate-600 tracking-[2px] uppercase">ABOUT</Text>
-              <Text className="text-[10px] font-bold text-slate-600 tracking-[2px] uppercase">ARCHIVE</Text>
-              <Text className="text-[10px] font-bold text-slate-600 tracking-[2px] uppercase">PRIVACY</Text>
-              <Text className="text-[10px] font-bold text-slate-600 tracking-[2px] uppercase">CONTACT</Text>
-            </View>
-            <View className="bg-white rounded-full flex-row items-center px-4 py-2 border border-slate-300">
-              <View className="flex-row items-center gap-x-2 border-r border-slate-200 pr-4 mr-4">
-                <View className="p-1.5 bg-slate-800 rounded">
-                  <Text className="text-[8px] font-bold text-white tracking-wider">RSS</Text>
-                </View>
-              </View>
-              <View className="flex-row items-center gap-x-2 border-r border-slate-200 pr-4 mr-4">
-                <Text className="text-[8px] font-bold text-slate-800 tracking-[1.5px] uppercase">TWITTER</Text>
-              </View>
-              <View className="flex-row items-center gap-x-2">
-                <Text className="text-[8px] font-bold text-slate-800 tracking-[1.5px] uppercase">HOME</Text>
-              </View>
-            </View>
-          </View>
-
           {/* Lazy Comments Section (Toggleable) */}
           {showComments && (
-            <View className="px-6 py-8 bg-white border-t border-slate-100">
+            <View
+              className="px-6 py-8 bg-white border-t border-slate-100"
+              onLayout={(e) => { commentSectionY.current = e.nativeEvent.layout.y; }}
+            >
               <Text className="text-xl font-bold text-slate-800 mb-6 font-serif">Comments</Text>
 
               <View className="flex-row items-center mb-6">
@@ -339,6 +355,11 @@ export default function PostDetailScreen() {
                   placeholder="Share your thoughts..."
                   value={newComment}
                   onChangeText={setNewComment}
+                  onFocus={() => {
+                    setTimeout(() => {
+                      scrollRef.current?.scrollTo({ y: commentSectionY.current, animated: true });
+                    }, 300);
+                  }}
                 />
                 <TouchableOpacity
                   className={`w-12 h-12 rounded-full items-center justify-center ${newComment.trim() ? 'bg-[#047857]' : 'bg-slate-200'}`}
