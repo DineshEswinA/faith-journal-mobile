@@ -291,56 +291,6 @@ export default function PostDetailScreen() {
             </View>
           </View>
 
-          {/* Continue Your Journey (Similar Posts) */}
-          <View className="bg-[#FAFAFA] pt-8 px-6 border-t border-slate-100">
-            <Text className="text-2xl font-bold text-slate-900 mb-8" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
-              Continue Your{'\n'}Journey
-            </Text>
-
-            {suggestedPosts.slice(0, 2).map((sPost: any, index: number) => (
-              <View key={sPost.id} className="mx-[-24px]">
-                <PostCard
-                  item={sPost}
-                  index={index}
-                  showAuthor={true}
-                />
-                {index < suggestedPosts.slice(0, 2).length - 1 && (
-                  <View className="h-[1px] bg-slate-200 mx-6 mb-10 mt-2" />
-                )}
-              </View>
-            ))}
-
-            {/* Green Promo Item inline */}
-            <View className="bg-[#047857] rounded-xl p-6 mb-8 mt-2">
-              <Text className="text-3xl font-bold text-white mb-2" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
-                Start your own story
-              </Text>
-              <Text className="text-white/80 font-serif text-sm leading-relaxed mb-6">
-                Join our community of intentional creators and publish your thoughts.
-              </Text>
-              <TouchableOpacity className="bg-white rounded-full py-3 px-6 self-start" onPress={() => router.push('/(tabs)/create')}>
-                <Text className="text-[#047857] font-bold text-xs tracking-widest uppercase">WRITE TO WRITE</Text>
-              </TouchableOpacity>
-            </View>
-
-            {suggestedPosts[2] && (
-              <TouchableOpacity className="mb-8" onPress={() => router.push(`/post/${suggestedPosts[2].id}`)} activeOpacity={0.8}>
-                <View className="w-full h-48 rounded-xl overflow-hidden bg-slate-200 mb-4">
-                  <Image source={{ uri: `https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&q=80&sig=4` }} className="w-full h-full" />
-                </View>
-                <Text className="text-[9px] font-bold text-[#047857] tracking-[2px] uppercase mb-2">
-                  {suggestedPosts[2].categories?.name || 'UNCATEGORIZED'}
-                </Text>
-                <Text className="text-[22px] font-bold text-slate-900 mb-2 leading-snug" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
-                  {suggestedPosts[2].title}
-                </Text>
-                <Text className="text-sm font-serif text-slate-600 leading-relaxed line-clamp-2">
-                  {suggestedPosts[2].excerpt || "A quiet exploration of the things that matter most."}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
           {/* Lazy Comments Section (Toggleable) */}
           {showComments && (
             <View
@@ -396,6 +346,56 @@ export default function PostDetailScreen() {
               )}
             </View>
           )}
+
+          {/* Continue Your Journey (Similar Posts) */}
+          <View className="bg-[#FAFAFA] pt-8 px-6 border-t border-slate-100">
+            <Text className="text-2xl font-bold text-slate-900 mb-8" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+              Continue Your Journey
+            </Text>
+
+            {suggestedPosts.slice(0, 2).map((sPost: any, index: number) => (
+              <View key={sPost.id} className="mx-[-24px]">
+                <PostCard
+                  item={sPost}
+                  index={index}
+                  showAuthor={true}
+                />
+                {index < suggestedPosts.slice(0, 2).length - 1 && (
+                  <View className="h-[1px] bg-slate-200 mx-6 mb-10 mt-2" />
+                )}
+              </View>
+            ))}
+
+            {/* Green Promo Item inline */}
+            <View className="bg-[#047857] rounded-xl p-6 mb-8 mt-2">
+              <Text className="text-3xl font-bold text-white mb-2" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+                Start your own story
+              </Text>
+              <Text className="text-white/80 font-serif text-sm leading-relaxed mb-6">
+                Join our community of intentional creators and publish your thoughts.
+              </Text>
+              <TouchableOpacity className="bg-white rounded-full py-3 px-6 self-start" onPress={() => router.push('/(tabs)/create')}>
+                <Text className="text-[#047857] font-bold text-xs tracking-widest uppercase">WRITE TO WRITE</Text>
+              </TouchableOpacity>
+            </View>
+
+            {suggestedPosts[2] && (
+              <TouchableOpacity className="mb-8" onPress={() => router.push(`/post/${suggestedPosts[2].id}`)} activeOpacity={0.8}>
+                <View className="w-full h-48 rounded-xl overflow-hidden bg-slate-200 mb-4">
+                  <Image source={{ uri: `https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&q=80&sig=4` }} className="w-full h-full" />
+                </View>
+                <Text className="text-[9px] font-bold text-[#047857] tracking-[2px] uppercase mb-2">
+                  {suggestedPosts[2].categories?.name || 'UNCATEGORIZED'}
+                </Text>
+                <Text className="text-[22px] font-bold text-slate-900 mb-2 leading-snug" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
+                  {suggestedPosts[2].title}
+                </Text>
+                <Text className="text-sm font-serif text-slate-600 leading-relaxed line-clamp-2">
+                  {suggestedPosts[2].excerpt || "A quiet exploration of the things that matter most."}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

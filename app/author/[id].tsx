@@ -45,7 +45,7 @@ export default function AuthorProfileScreen() {
 
     const { data: postsData } = await supabase
       .from('posts')
-      .select('*, likes(count), comments(count), bookmarks(count), categories(name)')
+      .select('*, likes(count), comments(count), bookmarks(count), categories(name), profiles(username, full_name, avatar_url)')
       .eq('author_id', id)
       .order('created_at', { ascending: false })
       .range(0, PAGE_SIZE - 1);
@@ -113,7 +113,7 @@ export default function AuthorProfileScreen() {
     const nextPage = page + 1;
     const { data } = await supabase
       .from('posts')
-      .select('*, categories(name)')
+      .select('*, likes(count), comments(count), bookmarks(count), categories(name), profiles(username, full_name, avatar_url)')
       .eq('author_id', id)
       .order('created_at', { ascending: false })
       .range(nextPage * PAGE_SIZE, (nextPage + 1) * PAGE_SIZE - 1);

@@ -29,7 +29,7 @@ export default function ProfileScreen() {
       const { data: dbProfile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single();
 
       setProfileData(dbProfile);

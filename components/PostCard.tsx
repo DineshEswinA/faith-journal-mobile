@@ -7,7 +7,7 @@ export type PostCardProps = {
   item: any;
   index: number;
   showAuthor?: boolean;
-  variant?: 'default' | 'sideBySide';
+  variant?: 'stacked' | 'sideBySide';
   isBookmarked?: boolean;
   onBookmark?: (postId: string) => void;
   activeMenuPostId?: string | null;
@@ -20,7 +20,7 @@ export default function PostCard({
   item,
   index,
   showAuthor = true,
-  variant = 'default',
+  variant = 'sideBySide',
   isBookmarked = false,
   onBookmark,
   activeMenuPostId,
@@ -29,6 +29,9 @@ export default function PostCard({
   isFollowing = false,
 }: PostCardProps) {
   const router = useRouter();
+  const authorProfile = Array.isArray(item.user)
+    ? item.user[0]
+    : item.user || (Array.isArray(item.profiles) ? item.profiles[0] : item.profiles);
 
   // Fallback images if actual ones don't exist
   const coverImg = item.cover_image || `https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&q=80&sig=${item.id || index}`;
@@ -36,8 +39,8 @@ export default function PostCard({
   const dateStr = item.created_at
     ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '';
-  const authorAvatar = item.user?.avatar_url || `https://i.pravatar.cc/100?img=${index + 10}`;
-  const authorName = item.user?.full_name || item.user?.username || 'Anonymous';
+  const authorAvatar = authorProfile?.avatar_url || `https://i.pravatar.cc/100?img=${index + 10}`;
+  const authorName = authorProfile?.full_name || authorProfile?.username || authorProfile?.email || 'Anonymous';
 
   const handleCardPress = () => {
     if (activeMenuPostId) {
@@ -87,6 +90,12 @@ export default function PostCard({
                   </Text>
                 </View>
               )}
+
+              {!showAuthor && (
+                <Text className="text-[9px] font-bold text-slate-400 uppercase tracking-[1px]">
+                  {dateStr}{dateStr ? '  ·  ' : ''}{getReadTime(item)}
+                </Text>
+              )}
             </View>
 
             <View className="w-[110px] h-[110px] rounded-sm overflow-hidden bg-slate-200 border border-slate-200">
@@ -94,6 +103,65 @@ export default function PostCard({
             </View>
           </View>
         </TouchableOpacity>
+
+        <View className="flex-row items-center justify-between mt-4">
+          <View className="flex-row items-center gap-x-4">
+            <View className="flex-row items-center gap-x-1.5">
+              <Heart size={16} color="#94a3b8" />
+              <Text className="text-[11px] font-bold text-slate-500">{item.likes_count ?? item.likes?.[0]?.count ?? 0}</Text>
+            </View>
+            <View className="flex-row items-center gap-x-1.5">
+              <MessageCircle size={16} color="#94a3b8" />
+              <Text className="text-[11px] font-bold text-slate-500">{item.comments_count ?? item.comments?.[0]?.count ?? 0}</Text>
+            </View>
+          </View>
+
+          <View className="flex-row items-center gap-x-5">
+            <TouchableOpacity
+              className="flex-row items-center gap-x-1.5"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              onPress={() => onBookmark ? onBookmark(item.id) : null}
+            >
+              <Bookmark
+                size={16}
+                color={isBookmarked ? '#047857' : '#94a3b8'}
+                fill={isBookmarked ? '#047857' : 'transparent'}
+              />
+              <Text className={`text-[11px] font-bold ${isBookmarked ? 'text-[#047857]' : 'text-slate-500'}`}>
+                {item.bookmarks_count ?? item.bookmarks?.[0]?.count ?? 0}
+              </Text>
+            </TouchableOpacity>
+            <View className="relative">
+              <TouchableOpacity
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                onPress={() => onMenuToggle ? onMenuToggle(item.id) : null}
+              >
+                <MoreVertical size={16} color="#94a3b8" />
+              </TouchableOpacity>
+
+              {activeMenuPostId === item.id && (
+                <View className="absolute right-0 bottom-6 bg-white rounded-xl shadow-lg shadow-black/20 border border-slate-100 py-1 z-50 w-44" style={{ elevation: 5 }}>
+                  <TouchableOpacity className="flex-row items-center px-4 py-3 border-b border-slate-50 gap-x-3" onPress={() => {
+                    onMenuToggle?.(item.id);
+                    Alert.alert('Share', 'Sharing options...');
+                  }}>
+                    <Share2 size={16} color="#333" />
+                    <Text className="text-[13px] font-medium text-slate-700">Share</Text>
+                  </TouchableOpacity>
+                  {onFollow && (
+                    <TouchableOpacity className="flex-row items-center px-4 py-3 gap-x-3" onPress={() => {
+                      onMenuToggle?.(item.id);
+                      onFollow();
+                    }}>
+                      <UserPlus size={16} color="#333" />
+                      <Text className="text-[13px] font-medium text-slate-700">{isFollowing ? 'Unfollow' : 'Follow'}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
       </View>
     );
   }

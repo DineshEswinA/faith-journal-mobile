@@ -20,17 +20,16 @@ export default function UserProfileScreen() {
     if (!id) return;
     
     const loadUserMode = async () => {
-      // Load user info (assuming a view or RPC)
       const { data: userData } = await supabase
-        .from('users_view')
+        .from('profiles')
         .select('*')
-        .eq('id', id)
+        .eq('user_id', id)
         .single();
         
       const { data: postsData } = await supabase
         .from('posts')
-        .select('*')
-        .eq('user_id', id)
+        .select('*, likes(count), comments(count), bookmarks(count), categories(name), profiles(full_name, username, avatar_url)')
+        .eq('author_id', id)
         .order('created_at', { ascending: false });
 
       if (user) {
@@ -42,7 +41,7 @@ export default function UserProfileScreen() {
         setIsFollowing(!!followData);
       }
 
-      setProfile(userData || { id, email: 'User' });
+      setProfile(userData || { user_id: id, email: 'User' });
       setPosts(postsData || []);
       setLoading(false);
     };
@@ -55,9 +54,9 @@ export default function UserProfileScreen() {
     setIsFollowing(!isFollowing);
 
     if (isFollowing) {
-      await supabase.from('followers').delete().match({ follower_id: user.id, following_id: profile.id });
+      await supabase.from('followers').delete().match({ follower_id: user.id, following_id: profile.user_id });
     } else {
-      await supabase.from('followers').insert({ follower_id: user.id, following_id: profile.id });
+      await supabase.from('followers').insert({ follower_id: user.id, following_id: profile.user_id });
     }
   };
 
@@ -87,7 +86,7 @@ export default function UserProfileScreen() {
           </View>
           <Text className="text-xl font-bold text-slate-800 mb-6">{profile?.email}</Text>
           
-          {user?.id !== profile.id && (
+          {user?.id !== profile.user_id && (
             <TouchableOpacity 
               className={`px-8 py-3 rounded-full ${isFollowing ? 'bg-slate-100' : 'bg-indigo-600'}`}
               onPress={handleFollowToggle}
@@ -105,7 +104,7 @@ export default function UserProfileScreen() {
           <Text className="text-center text-slate-400 mt-10">No posts from this user.</Text>
         ) : (
           posts.map((post, index) => (
-            <PostCard key={post.id} item={{ ...post, user: { email: profile.email } }} index={index} />
+            <PostCard key={post.id} item={{ ...post, user: post.profiles || profile }} index={index} />
           ))
         )}
       </ScrollView>
