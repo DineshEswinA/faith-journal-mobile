@@ -1,50 +1,152 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import PostCard from '@/components/PostCard';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'expo-router';
-import { getReadTime } from '@/lib/readTime';
+import { useAuthStore } from '@/store/authStore';
 import { Clock, Menu, Search, X } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PostCard from '@/components/PostCard';
 
-const TRENDING_CATEGORIES = ['Gospels', 'Stories', 'Mime Ideas', 'Salvations', 'Ministries', 'Daily Bread', 'Musics'];
-const RECENT_SEARCHES = ['The Parables of Mercy', 'Modern Ministry in Cities', 'Worship Music 2024'];
+const RECENT_SEARCHES_STORAGE_KEY = 'explore_recent_searches';
+const MAX_RECENT_SEARCHES = 8;
+
+const POST_SELECT = `
+  id,
+  title,
+  excerpt,
+  content,
+  created_at,
+  cover_image,
+  category_id,
+  author_id,
+  likes(count),
+  comments(count),
+  bookmarks(count),
+  categories(name),
+  profiles(full_name, username, avatar_url)
+`;
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string | null;
+};
+
+const buildRecentSearchesKey = (userId?: string) =>
+  `${RECENT_SEARCHES_STORAGE_KEY}:${userId ?? 'guest'}`;
 
 export default function ExploreScreen() {
   const [query, setQuery] = useState('');
   const [posts, setPosts] = useState<any[]>([]);
   const [recommended, setRecommended] = useState<any[]>([]);
-  const [recentSearches, setRecentSearches] = useState(RECENT_SEARCHES);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
-  const router = useRouter();
+  const { user } = useAuthStore();
 
   useEffect(() => {
-    loadRecommended();
-  }, []);
+    bootstrapExplore();
+  }, [user?.id]);
 
-  const loadRecommended = async () => {
-    const { data } = await supabase
-      .from('posts')
-      .select('*, categories(name), profiles(full_name, username)')
-      .order('created_at', { ascending: false })
-      .limit(6);
-    setRecommended(data || []);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      runSearch(query, selectedCategory?.id ?? null);
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [query, selectedCategory?.id]);
+
+  const bootstrapExplore = async () => {
+    setIsBootstrapping(true);
+    try {
+      await Promise.all([loadTrendingCategories(), loadRecentSearches()]);
+      await loadRecommended(selectedCategory?.id ?? null);
+    } finally {
+      setIsBootstrapping(false);
+    }
   };
 
-  const handleSearch = async (q: string) => {
-    setQuery(q);
-    if (q.length < 2) {
+  const normalizePosts = (data: any[] | null) =>
+    (data || []).map((post: any) => ({
+      ...post,
+      likes_count: post.likes?.[0]?.count || 0,
+      comments_count: post.comments?.[0]?.count || 0,
+      bookmarks_count: post.bookmarks?.[0]?.count || 0,
+      user: post.profiles || {},
+      category: post.categories?.name || 'Uncategorized',
+    }));
+
+  const loadTrendingCategories = async () => {
+    const { data } = await supabase.from('categories').select('id, name, slug').order('name');
+    setCategories(data || []);
+  };
+
+  const loadRecentSearches = async () => {
+    const stored = await AsyncStorage.getItem(buildRecentSearchesKey(user?.id));
+    setRecentSearches(stored ? JSON.parse(stored) : []);
+  };
+
+  const persistRecentSearches = async (next: string[]) => {
+    setRecentSearches(next);
+    await AsyncStorage.setItem(buildRecentSearchesKey(user?.id), JSON.stringify(next));
+  };
+
+  const saveRecentSearch = async (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed.length < 2) return;
+
+    const next = [
+      trimmed,
+      ...recentSearches.filter(
+        (item) => item.toLocaleLowerCase() !== trimmed.toLocaleLowerCase()
+      ),
+    ].slice(0, MAX_RECENT_SEARCHES);
+
+    await persistRecentSearches(next);
+  };
+
+  const loadRecommended = async (categoryId: string | null = null) => {
+    let request = supabase
+      .from('posts')
+      .select(POST_SELECT)
+      .order('created_at', { ascending: false })
+      .limit(6);
+
+    if (categoryId) {
+      request = request.eq('category_id', categoryId);
+    }
+
+    const { data } = await request;
+    setRecommended(normalizePosts(data));
+  };
+
+  const runSearch = async (value: string, categoryId: string | null = selectedCategory?.id ?? null) => {
+    const trimmed = value.trim();
+    if (trimmed.length < 2) {
       setPosts([]);
+      setLoading(false);
+      await loadRecommended(categoryId);
       return;
     }
+
     setLoading(true);
-    const { data } = await supabase
+
+    let request = supabase
       .from('posts')
-      .select('*, likes(count), comments(count), bookmarks(count), categories(name), profiles(full_name, username)')
-      .ilike('title', `%${q}%`)
+      .select(POST_SELECT)
+      .or(`title.ilike.%${trimmed}%,excerpt.ilike.%${trimmed}%`)
+      .order('created_at', { ascending: false })
       .limit(20);
-    setPosts(data || []);
+
+    if (categoryId) {
+      request = request.eq('category_id', categoryId);
+    }
+
+    const { data } = await request;
+    setPosts(normalizePosts(data));
     setLoading(false);
   };
 
@@ -53,8 +155,29 @@ export default function ExploreScreen() {
     setPosts([]);
   };
 
-  const removeRecent = (item: string) => {
-    setRecentSearches(prev => prev.filter(r => r !== item));
+  const removeRecent = async (item: string) => {
+    await persistRecentSearches(recentSearches.filter((recent) => recent !== item));
+  };
+
+  const clearRecentSearches = async () => {
+    await persistRecentSearches([]);
+  };
+
+  const handleRecentPress = async (item: string) => {
+    await saveRecentSearch(item);
+    setQuery(item);
+  };
+
+  const handleCategoryPress = async (category: Category) => {
+    const nextCategory = selectedCategory?.id === category.id ? null : category;
+    setSelectedCategory(nextCategory);
+
+    if (!query.trim()) {
+      await loadRecommended(nextCategory?.id ?? null);
+      return;
+    }
+
+    await runSearch(query, nextCategory?.id ?? null);
   };
 
   const displayList = query.length >= 2 ? posts : recommended;
@@ -67,36 +190,43 @@ export default function ExploreScreen() {
           <View className="px-6 mb-8 mt-4">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-[10px] font-bold text-slate-400 tracking-[1.5px] uppercase">RECENT SEARCHES</Text>
-              <TouchableOpacity onPress={() => setRecentSearches([])}>
+              <TouchableOpacity onPress={clearRecentSearches}>
                 <Text className="text-[11px] font-bold text-[#047857]">Clear all</Text>
               </TouchableOpacity>
             </View>
             {recentSearches.map((item) => (
               <View key={item} className="flex-row items-center justify-between py-3 border-b border-slate-50">
-                <View className="flex-row items-center gap-x-3">
+                <TouchableOpacity className="flex-row items-center gap-x-3 flex-1 pr-4" onPress={() => handleRecentPress(item)}>
                   <Clock size={16} color="#94a3b8" />
                   <Text className="text-[15px] text-slate-700 font-serif">{item}</Text>
-                </View>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => removeRecent(item)}>
                   <X size={16} color="#94a3b8" />
                 </TouchableOpacity>
               </View>
             ))}
           </View>
-
-          {/* Trending Categories */}
-          <View className="px-6 mb-8">
-            <Text className="text-[10px] font-bold text-slate-400 tracking-[1.5px] uppercase mb-4">TRENDING CATEGORIES</Text>
-            <View className="flex-row flex-wrap gap-3">
-              {TRENDING_CATEGORIES.map((cat) => (
-                <TouchableOpacity key={cat} className="bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm">
-                  <Text className="text-[13px] font-bold text-slate-700">{cat}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
         </>
       )}
+
+      <View className="px-6 mb-8">
+        <Text className="text-[10px] font-bold text-slate-400 tracking-[1.5px] uppercase mb-4">TRENDING CATEGORIES</Text>
+        <View className="flex-row flex-wrap gap-3">
+          {categories.map((cat) => (
+            <TouchableOpacity
+              key={cat.id}
+              onPress={() => handleCategoryPress(cat)}
+              className={`px-4 py-2 rounded-xl shadow-sm border ${
+                selectedCategory?.id === cat.id ? 'bg-[#047857] border-[#047857]' : 'bg-white border-slate-200'
+              }`}
+            >
+              <Text className={`text-[13px] font-bold ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-700'}`}>
+                {cat.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
       {/* List Header Label */}
       <View className="px-6">
@@ -134,8 +264,9 @@ export default function ExploreScreen() {
                 placeholder="Search for posts, authors, or topics..."
                 placeholderTextColor="#94a3b8"
                 value={query}
-                onChangeText={handleSearch}
+                onChangeText={setQuery}
                 returnKeyType="search"
+                onSubmitEditing={() => saveRecentSearch(query)}
               />
               {query.length > 0 && (
                 <TouchableOpacity onPress={clearSearch}>
@@ -146,7 +277,7 @@ export default function ExploreScreen() {
           </View>
         </View>
 
-        {loading ? (
+        {loading || isBootstrapping ? (
           <ActivityIndicator color="#047857" className="mt-10" />
         ) : (
           <FlatList
@@ -168,7 +299,11 @@ export default function ExploreScreen() {
             ListEmptyComponent={
               query.length >= 2 ? (
                 <Text className="text-center font-serif italic text-slate-400 mt-10">No results found for "{query}"</Text>
-              ) : null
+              ) : (
+                <Text className="text-center font-serif italic text-slate-400 mt-10">
+                  {selectedCategory ? `No posts found in ${selectedCategory.name}.` : 'No posts available yet.'}
+                </Text>
+              )
             }
           />
         )}
