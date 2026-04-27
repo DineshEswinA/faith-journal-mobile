@@ -8,6 +8,7 @@ import { ActivityIndicator, FlatList, Image, Platform, Text, TouchableOpacity, T
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '@/components/PostCard';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useSideDrawer } from '@/components/SideDrawerProvider';
 
 type Tab = 'published' | 'drafts' | 'saved';
 
@@ -22,6 +23,7 @@ export default function ProfileScreen() {
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
   const router = useRouter();
   const { colors } = useAppTheme();
+  const { openDrawer } = useSideDrawer();
 
   useEffect(() => {
     if (!user) return;
@@ -150,7 +152,7 @@ export default function ProfileScreen() {
       <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
         {/* Header Navigation */}
         <View className="bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <TouchableOpacity className="w-8 justify-center">
+          <TouchableOpacity className="w-8 justify-center" onPress={openDrawer}>
             <Menu color={colors.icon} size={24} />
           </TouchableOpacity>
           <View className="flex-1 items-center justify-center">

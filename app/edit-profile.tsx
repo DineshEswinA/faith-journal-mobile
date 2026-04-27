@@ -22,30 +22,39 @@ export default function EditProfileScreen() {
   const [website, setWebsite] = useState('');
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     const loadProfile = async () => {
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
       setProfile(data);
-      if (data) {
-        setFullName(data.full_name || '');
-        setUsername(data.username || '');
-        setBio(data.bio || '');
-        setWebsite(data.website || '');
-      }
+      setFullName(data?.full_name || user.user_metadata?.full_name || '');
+      setUsername(data?.username || user.user_metadata?.username || '');
+      setBio(data?.bio || user.user_metadata?.bio || '');
+      setWebsite(data?.website || user.user_metadata?.website || '');
       setLoading(false);
     };
+
     loadProfile();
   }, [user]);
 
   const handleSave = async () => {
+    if (!user) return;
+
     setSaving(true);
     const { error } = await supabase.from('profiles').upsert({
-      id: user?.id,
+      user_id: user.id,
       full_name: fullName.trim(),
       username: username.trim(),
       bio: bio.trim(),
       website: website.trim(),
-      updated_at: new Date()
     });
     setSaving(false);
     if (!error) {

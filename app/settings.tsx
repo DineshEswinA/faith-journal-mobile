@@ -20,7 +20,11 @@ export default function SettingsScreen() {
   useEffect(() => {
     if (!user) return;
     const loadProfile = async () => {
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
       setProfile(data);
     };
     loadProfile();
@@ -93,7 +97,7 @@ export default function SettingsScreen() {
               <ChevronRight size={16} color={colors.iconChevron} />
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center p-4">
+            <TouchableOpacity className="flex-row items-center p-4" onPress={() => router.push('/change-password')}>
               <View className="bg-[#E8F3EE] dark:bg-[#0D2318] w-10 h-10 rounded-xl items-center justify-center mr-4">
                 <Lock size={20} color="#047857" />
               </View>

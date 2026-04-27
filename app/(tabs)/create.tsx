@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useSideDrawer } from '@/components/SideDrawerProvider';
 
 export default function CreateScreen() {
   const [title, setTitle] = useState('');
@@ -16,6 +17,7 @@ export default function CreateScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
   const { colors } = useAppTheme();
+  const { openDrawer } = useSideDrawer();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -69,7 +71,7 @@ export default function CreateScreen() {
       >
         {/* Custom Header */}
         <View className="bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <TouchableOpacity className="w-8 justify-center">
+          <TouchableOpacity className="w-8 justify-center" onPress={openDrawer}>
             <Menu color={colors.icon} size={24} />
           </TouchableOpacity>
           <View className="flex-1 items-center justify-center">

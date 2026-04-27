@@ -72,6 +72,7 @@ function RootLayoutNav() {
         <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="author/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
+        <Stack.Screen name="change-password" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>

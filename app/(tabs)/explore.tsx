@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useSideDrawer } from '@/components/SideDrawerProvider';
 
 const RECENT_SEARCHES_STORAGE_KEY = 'explore_recent_searches';
 const MAX_RECENT_SEARCHES = 8;
@@ -48,6 +49,7 @@ export default function ExploreScreen() {
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
   const { user } = useAuthStore();
   const { colors } = useAppTheme();
+  const { openDrawer } = useSideDrawer();
 
   useEffect(() => {
     bootstrapExplore();
@@ -245,7 +247,7 @@ export default function ExploreScreen() {
         {/* Persistent Search Bar Header */}
         <View>
           <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-            <TouchableOpacity className="w-8 justify-center">
+            <TouchableOpacity className="w-8 justify-center" onPress={openDrawer}>
               <Menu color={colors.icon} size={24} />
             </TouchableOpacity>
             <View className="flex-1 items-center justify-center">

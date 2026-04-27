@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Platform, RefreshControl, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useSideDrawer } from '@/components/SideDrawerProvider';
 
 export default function HomeScreen() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -20,6 +21,7 @@ export default function HomeScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
   const { colors } = useAppTheme();
+  const { openDrawer } = useSideDrawer();
 
   const fetchCategories = async () => {
     const { data, error } = await supabase.from('categories').select('*').order('name');
@@ -124,7 +126,7 @@ export default function HomeScreen() {
       <View className="bg-[#FAFAFA] dark:bg-[#111111]">
         {/* Custom Header Area inside SafeAreaContext */}
         <SafeAreaView edges={['top']} className="bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4">
-          <TouchableOpacity className="w-8 justify-center">
+          <TouchableOpacity className="w-8 justify-center" onPress={openDrawer}>
             <Menu color={colors.icon} size={24} />
           </TouchableOpacity>
           <View className="flex-1 items-center justify-center">
