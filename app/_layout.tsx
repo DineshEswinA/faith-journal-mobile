@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import './global.css';
 
-import { useColorScheme } from '@/components/useColorScheme';
+import { useColorScheme } from 'nativewind';
 import { useAuthStore } from '@/store/authStore';
 
 export {
@@ -44,7 +44,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const { session, isInitialized } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();

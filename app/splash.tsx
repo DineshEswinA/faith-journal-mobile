@@ -24,7 +24,7 @@ export default function SplashScreen() {
   }, [isInitialized, session]);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F2F6F3] relative items-center justify-center pt-20" edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-[#F2F6F3] dark:bg-[#111111] relative items-center justify-center pt-20" edges={['top', 'bottom']}>
       {/* Icon Area */}
       <View className="mb-6">
         <BookOpen size={48} color="#047857" strokeWidth={1.5} />
@@ -32,18 +32,18 @@ export default function SplashScreen() {
 
       {/* Title */}
       <Text
-        className="text-[46px] font-bold text-black mb-6 tracking-tight"
+        className="text-[46px] font-bold text-black dark:text-white mb-6 tracking-tight"
         style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}
       >
         Faith Journal
       </Text>
 
       {/* Divider */}
-      <View className="w-16 h-px bg-slate-300 mb-8" />
+      <View className="w-16 h-px bg-slate-300 dark:bg-slate-600 mb-8" />
 
       {/* Subtitle */}
       <Text
-        className="text-[19px] text-[#556B5D] text-center px-12 leading-relaxed"
+        className="text-[19px] text-[#556B5D] dark:text-[#8BA393] text-center px-12 leading-relaxed"
         style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}
       >
         A quiet space for reflection,{'\n'}prayer, and the written word.

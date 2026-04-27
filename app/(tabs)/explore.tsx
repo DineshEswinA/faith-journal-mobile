@@ -6,6 +6,7 @@ import { Clock, Menu, Search, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const RECENT_SEARCHES_STORAGE_KEY = 'explore_recent_searches';
 const MAX_RECENT_SEARCHES = 8;
@@ -46,6 +47,7 @@ export default function ExploreScreen() {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
   const { user } = useAuthStore();
+  const { colors } = useAppTheme();
 
   useEffect(() => {
     bootstrapExplore();
@@ -189,19 +191,19 @@ export default function ExploreScreen() {
           {/* Recent Searches */}
           <View className="px-6 mb-8 mt-4">
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-[10px] font-bold text-slate-400 tracking-[1.5px] uppercase">RECENT SEARCHES</Text>
+              <Text className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-[1.5px] uppercase">RECENT SEARCHES</Text>
               <TouchableOpacity onPress={clearRecentSearches}>
                 <Text className="text-[11px] font-bold text-[#047857]">Clear all</Text>
               </TouchableOpacity>
             </View>
             {recentSearches.map((item) => (
-              <View key={item} className="flex-row items-center justify-between py-3 border-b border-slate-50">
+              <View key={item} className="flex-row items-center justify-between py-3 border-b border-slate-50 dark:border-slate-800">
                 <TouchableOpacity className="flex-row items-center gap-x-3 flex-1 pr-4" onPress={() => handleRecentPress(item)}>
-                  <Clock size={16} color="#94a3b8" />
-                  <Text className="text-[15px] text-slate-700 font-serif">{item}</Text>
+                  <Clock size={16} color={colors.iconMuted} />
+                  <Text className="text-[15px] text-slate-700 dark:text-slate-300 font-serif">{item}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => removeRecent(item)}>
-                  <X size={16} color="#94a3b8" />
+                  <X size={16} color={colors.iconMuted} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -210,17 +212,17 @@ export default function ExploreScreen() {
       )}
 
       <View className="px-6 mb-8">
-        <Text className="text-[10px] font-bold text-slate-400 tracking-[1.5px] uppercase mb-4">TRENDING CATEGORIES</Text>
+        <Text className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-[1.5px] uppercase mb-4">TRENDING CATEGORIES</Text>
         <View className="flex-row flex-wrap gap-3">
           {categories.map((cat) => (
             <TouchableOpacity
               key={cat.id}
               onPress={() => handleCategoryPress(cat)}
               className={`px-4 py-2 rounded-xl shadow-sm border ${
-                selectedCategory?.id === cat.id ? 'bg-[#047857] border-[#047857]' : 'bg-white border-slate-200'
+                selectedCategory?.id === cat.id ? 'bg-[#047857] border-[#047857]' : 'bg-white dark:bg-[#1A1A1A] border-slate-200 dark:border-slate-700'
               }`}
             >
-              <Text className={`text-[13px] font-bold ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-700'}`}>
+              <Text className={`text-[13px] font-bold ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                 {cat.name}
               </Text>
             </TouchableOpacity>
@@ -230,7 +232,7 @@ export default function ExploreScreen() {
 
       {/* List Header Label */}
       <View className="px-6">
-        <Text className="text-[10px] font-bold text-slate-400 tracking-[1.5px] uppercase mb-6">
+        <Text className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-[1.5px] uppercase mb-6">
           {query.length >= 2 ? 'SEARCH RESULTS' : 'RECOMMENDED FOR YOU'}
         </Text>
       </View>
@@ -239,30 +241,30 @@ export default function ExploreScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={() => { if(activeMenuPostId) setActiveMenuPostId(null); }}>
-      <SafeAreaView className="flex-1 bg-[#FAFAFA]" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
         {/* Persistent Search Bar Header */}
         <View>
-          <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-100">
+          <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
             <TouchableOpacity className="w-8 justify-center">
-              <Menu color="#333" size={24} />
+              <Menu color={colors.icon} size={24} />
             </TouchableOpacity>
             <View className="flex-1 items-center justify-center">
-              <Text className="text-2xl font-bold text-slate-900 text-center" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
+              <Text className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
                 Search
               </Text>
             </View>
-            <View className="w-8 h-8 rounded-full overflow-hidden bg-slate-200">
+            <View className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
               <Image source={{ uri: 'https://i.pravatar.cc/100?img=11' }} className="w-full h-full" />
             </View>
           </View>
 
           <View className="px-5 py-4">
-            <View className="bg-[#F3F4F6] rounded-2xl flex-row items-center px-4 py-3.5">
-              <Search size={18} color="#94a3b8" />
+            <View className="bg-[#F3F4F6] dark:bg-[#222222] rounded-2xl flex-row items-center px-4 py-3.5">
+              <Search size={18} color={colors.iconMuted} />
               <TextInput
-                className="flex-1 text-slate-800 text-[15px] mx-3"
+                className="flex-1 text-slate-800 dark:text-slate-200 text-[15px] mx-3"
                 placeholder="Search for posts, authors, or topics..."
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={colors.placeholder}
                 value={query}
                 onChangeText={setQuery}
                 returnKeyType="search"
@@ -270,7 +272,7 @@ export default function ExploreScreen() {
               />
               {query.length > 0 && (
                 <TouchableOpacity onPress={clearSearch}>
-                  <X size={16} color="#94a3b8" />
+                  <X size={16} color={colors.iconMuted} />
                 </TouchableOpacity>
               )}
             </View>
@@ -284,7 +286,7 @@ export default function ExploreScreen() {
             data={displayList}
             keyExtractor={(item) => item.id}
             ListHeaderComponent={renderHeader}
-            ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 mx-6 mb-10 mt-2" />}
+            ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-6 mb-10 mt-2" />}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 80 }}
             onScrollBeginDrag={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}
@@ -298,9 +300,9 @@ export default function ExploreScreen() {
             )}
             ListEmptyComponent={
               query.length >= 2 ? (
-                <Text className="text-center font-serif italic text-slate-400 mt-10">No results found for "{query}"</Text>
+                <Text className="text-center font-serif italic text-slate-400 dark:text-slate-500 mt-10">No results found for "{query}"</Text>
               ) : (
-                <Text className="text-center font-serif italic text-slate-400 mt-10">
+                <Text className="text-center font-serif italic text-slate-400 dark:text-slate-500 mt-10">
                   {selectedCategory ? `No posts found in ${selectedCategory.name}.` : 'No posts available yet.'}
                 </Text>
               )

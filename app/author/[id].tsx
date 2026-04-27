@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '@/components/PostCard';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const PAGE_SIZE = 5;
 
@@ -14,6 +15,7 @@ export default function AuthorProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuthStore();
   const router = useRouter();
+  const { colors } = useAppTheme();
 
   const [author, setAuthor] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
@@ -23,9 +25,7 @@ export default function AuthorProfileScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  // Set of post IDs bookmarked by the current user
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
-  // Track which post has the options menu open
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,7 +60,6 @@ export default function AuthorProfileScreen() {
     setStats({ posts: postsCount || 0, followers: followersCount || 0, following: followingCount || 0 });
 
     if (user) {
-      // Load follow state
       if (id !== user.id) {
         const { data: followData } = await supabase
           .from('followers')
@@ -70,7 +69,6 @@ export default function AuthorProfileScreen() {
         setIsFollowing(!!followData);
       }
 
-      // Load all bookmarks by current user (to mark posts)
       const { data: bkData } = await supabase
         .from('bookmarks')
         .select('post_id')
@@ -129,7 +127,7 @@ export default function AuthorProfileScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#FAFAFA]">
+      <View className="flex-1 items-center justify-center bg-[#FAFAFA] dark:bg-[#111111]">
         <ActivityIndicator size="large" color="#047857" />
       </View>
     );
@@ -156,84 +154,83 @@ export default function AuthorProfileScreen() {
     );
   };
 
-
   const ListHeader = () => (
     <View>
       {/* Author info */}
       <View className="items-center px-6 pt-10 pb-6">
-        <View className="w-24 h-24 rounded-2xl overflow-hidden bg-slate-200 mb-5 shadow-sm">
+        <View className="w-24 h-24 rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-700 mb-5 shadow-sm">
           <Image source={{ uri: displayAvatar }} className="w-full h-full" resizeMode="cover" />
         </View>
         <Text
-          className="text-3xl font-bold text-slate-900 mb-3 text-center tracking-tight"
+          className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3 text-center tracking-tight"
           style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}
         >
           {displayName}
         </Text>
-        <Text className="text-[15px] font-serif text-slate-500 text-center leading-relaxed px-4 mb-6">
+        <Text className="text-[15px] font-serif text-slate-500 dark:text-slate-400 text-center leading-relaxed px-4 mb-6">
           {displayBio}
         </Text>
 
-        {/* Follow button – full width green pill */}
+        {/* Follow button */}
         {!isOwn && (
           <TouchableOpacity
-            className={`w-full rounded-xl py-4 items-center justify-center mb-6 shadow-sm ${isFollowing ? 'bg-white border border-slate-200' : 'bg-[#047857]'}`}
+            className={`w-full rounded-xl py-4 items-center justify-center mb-6 shadow-sm ${isFollowing ? 'bg-white dark:bg-[#1A1A1A] border border-slate-200 dark:border-slate-700' : 'bg-[#047857]'}`}
             onPress={handleFollow}
           >
-            <Text className={`font-bold text-[15px] ${isFollowing ? 'text-slate-700' : 'text-white'}`}>
+            <Text className={`font-bold text-[15px] ${isFollowing ? 'text-slate-700 dark:text-slate-300' : 'text-white'}`}>
               {isFollowing ? 'Following' : 'Follow'}
             </Text>
           </TouchableOpacity>
         )}
 
         {/* Stats */}
-        <View className="w-full flex-row justify-between items-center bg-[#F3F4F6] rounded-2xl py-5 px-6">
+        <View className="w-full flex-row justify-between items-center bg-[#F3F4F6] dark:bg-[#222222] rounded-2xl py-5 px-6">
           <View className="items-center flex-1">
-            <Text className="text-xl font-bold text-slate-900">{stats.posts}</Text>
-            <Text className="text-[8px] font-bold text-slate-400 tracking-[1.5px] uppercase mt-1">POSTS</Text>
+            <Text className="text-xl font-bold text-slate-900 dark:text-slate-100">{stats.posts}</Text>
+            <Text className="text-[8px] font-bold text-slate-400 dark:text-slate-500 tracking-[1.5px] uppercase mt-1">POSTS</Text>
           </View>
-          <View className="w-[1px] h-8 bg-slate-200" />
+          <View className="w-[1px] h-8 bg-slate-200 dark:bg-slate-700" />
           <View className="items-center flex-1">
-            <Text className="text-xl font-bold text-slate-900">
+            <Text className="text-xl font-bold text-slate-900 dark:text-slate-100">
               {stats.followers > 999 ? (stats.followers / 1000).toFixed(1) + 'k' : stats.followers}
             </Text>
-            <Text className="text-[8px] font-bold text-slate-400 tracking-[1.5px] uppercase mt-1">FOLLOWERS</Text>
+            <Text className="text-[8px] font-bold text-slate-400 dark:text-slate-500 tracking-[1.5px] uppercase mt-1">FOLLOWERS</Text>
           </View>
-          <View className="w-[1px] h-8 bg-slate-200" />
+          <View className="w-[1px] h-8 bg-slate-200 dark:bg-slate-700" />
           <View className="items-center flex-1">
-            <Text className="text-xl font-bold text-slate-900">{stats.following}</Text>
-            <Text className="text-[8px] font-bold text-slate-400 tracking-[1.5px] uppercase mt-1">FOLLOWING</Text>
+            <Text className="text-xl font-bold text-slate-900 dark:text-slate-100">{stats.following}</Text>
+            <Text className="text-[8px] font-bold text-slate-400 dark:text-slate-500 tracking-[1.5px] uppercase mt-1">FOLLOWING</Text>
           </View>
         </View>
       </View>
 
       {/* Section header */}
-      <View className="px-6 flex-row justify-between items-center mb-6 mt-4 border-t border-slate-100 pt-6">
-        <Text className="text-[13px] font-bold text-slate-900 tracking-tight"
+      <View className="px-6 flex-row justify-between items-center mb-6 mt-4 border-t border-slate-100 dark:border-slate-800 pt-6">
+        <Text className="text-[13px] font-bold text-slate-900 dark:text-slate-100 tracking-tight"
           style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
           Latest Stories
         </Text>
-        <Text className="text-[10px] font-bold text-slate-400 tracking-[1px] uppercase">{stats.posts} TOTAL</Text>
+        <Text className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-[1px] uppercase">{stats.posts} TOTAL</Text>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FAFAFA]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
       {/* Header */}
-      <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-100">
+      <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
         <TouchableOpacity onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#333" />
+          <ArrowLeft size={24} color={colors.icon} />
         </TouchableOpacity>
         <Text
-          className="text-xl font-bold text-slate-900 flex-1 text-center mx-4"
+          className="text-xl font-bold text-slate-900 dark:text-slate-100 flex-1 text-center mx-4"
           style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}
           numberOfLines={1}
         >
           Faith Journal
         </Text>
         <TouchableOpacity>
-          <Share2 size={22} color="#333" />
+          <Share2 size={22} color={colors.icon} />
         </TouchableOpacity>
       </View>
 
@@ -241,7 +238,7 @@ export default function AuthorProfileScreen() {
         data={posts}
         keyExtractor={(item) => item.id}
         renderItem={renderPost}
-        ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 mx-6 mb-10 mt-2" />}
+        ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-6 mb-10 mt-2" />}
         ListHeaderComponent={ListHeader}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 80 }}
@@ -249,21 +246,21 @@ export default function AuthorProfileScreen() {
         ListFooterComponent={
           hasMore ? (
             <TouchableOpacity
-              className="mx-6 mb-10 border border-slate-200 rounded-xl py-4 items-center"
+              className="mx-6 mb-10 border border-slate-200 dark:border-slate-700 rounded-xl py-4 items-center"
               onPress={loadMore}
               disabled={loadingMore}
             >
               {loadingMore ? (
                 <ActivityIndicator size="small" color="#047857" />
               ) : (
-                <Text className="text-[10px] font-bold text-slate-500 tracking-[2px] uppercase">Load More Archive</Text>
+                <Text className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-[2px] uppercase">Load More Archive</Text>
               )}
             </TouchableOpacity>
           ) : null
         }
         ListEmptyComponent={
           <View className="items-center py-16 px-6">
-            <Text className="font-serif italic text-slate-400 text-center">No stories published yet.</Text>
+            <Text className="font-serif italic text-slate-400 dark:text-slate-500 text-center">No stories published yet.</Text>
           </View>
         }
       />
