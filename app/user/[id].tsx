@@ -104,8 +104,8 @@ export default function UserProfileScreen() {
         {posts.length === 0 ? (
           <Text className="text-center text-slate-400 mt-10">No posts from this user.</Text>
         ) : (
-          posts.map(post => (
-            <PostCard key={post.id} post={{...post, user: {email: profile.email} }} />
+          posts.map((post, index) => (
+            <PostCard key={post.id} item={{ ...post, user: { email: profile.email } }} index={index} />
           ))
         )}
       </ScrollView>

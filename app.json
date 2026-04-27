@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "faith-journal",
+    "name": "FaithJournal",
     "slug": "faith-journal",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -35,6 +35,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5a17c5c8-0caf-4dc9-95c7-e98362002be3"
+      }
     }
   }
 }

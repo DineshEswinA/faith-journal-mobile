@@ -7,6 +7,7 @@ export type PostCardProps = {
   item: any;
   index: number;
   showAuthor?: boolean;
+  variant?: 'default' | 'sideBySide';
   isBookmarked?: boolean;
   onBookmark?: (postId: string) => void;
   activeMenuPostId?: string | null;
@@ -19,6 +20,7 @@ export default function PostCard({
   item,
   index,
   showAuthor = true,
+  variant = 'default',
   isBookmarked = false,
   onBookmark,
   activeMenuPostId,
@@ -44,6 +46,57 @@ export default function PostCard({
       router.push(`/post/${item.id}` as any);
     }
   };
+
+  if (variant === 'sideBySide') {
+    return (
+      <View className="mb-5 px-6">
+        <TouchableOpacity activeOpacity={0.85} onPress={handleCardPress}>
+          <View className="flex-row items-start gap-x-4">
+            <View className="flex-1 pr-1">
+              <View className="flex-row items-center gap-x-2 mb-3">
+                <Text className="text-[9px] font-bold text-[#047857] tracking-[1.5px] uppercase">{catName}</Text>
+                <View className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                <Text className="text-[9px] font-bold text-slate-400 uppercase tracking-[1px]">{getReadTime(item)}</Text>
+              </View>
+
+              <Text
+                className="text-[18px] font-bold text-slate-900 leading-7 mb-3"
+                style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}
+                numberOfLines={3}
+              >
+                {item.title}
+              </Text>
+
+              {item.excerpt ? (
+                <Text
+                  className="text-[13px] text-slate-500 leading-5 mb-4"
+                  style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}
+                  numberOfLines={3}
+                >
+                  {item.excerpt}
+                </Text>
+              ) : null}
+
+              {showAuthor && (
+                <View className="flex-row items-center gap-x-2">
+                  <View className="w-5 h-5 rounded-full bg-slate-300 overflow-hidden">
+                    <Image source={{ uri: authorAvatar }} className="w-full h-full" />
+                  </View>
+                  <Text className="text-[10px] font-bold text-slate-800" numberOfLines={1}>
+                    {authorName}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <View className="w-[110px] h-[110px] rounded-sm overflow-hidden bg-slate-200 border border-slate-200">
+              <Image source={{ uri: coverImg }} className="w-full h-full" resizeMode="cover" />
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View className="mb-5 px-6">

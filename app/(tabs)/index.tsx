@@ -225,6 +225,7 @@ export default function HomeScreen() {
             <PostCard
               item={item}
               index={index}
+              variant="sideBySide"
               isBookmarked={bookmarkedIds.has(item.id)}
               onBookmark={handleBookmark}
               activeMenuPostId={activeMenuPostId}
