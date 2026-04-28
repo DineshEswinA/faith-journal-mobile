@@ -1,3 +1,4 @@
+import Header from '@/components/Header';
 import PostCard from '@/components/PostCard';
 import { getReadTime } from '@/lib/readTime';
 import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
@@ -126,19 +127,7 @@ export default function HomeScreen() {
     return (
       <View className="bg-[#FAFAFA] dark:bg-[#111111]">
         {/* Custom Header Area inside SafeAreaContext */}
-        <SafeAreaView edges={['top']} className="bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4">
-          <TouchableOpacity className="w-8 justify-center" onPress={openDrawer}>
-            <Menu color={colors.icon} size={24} />
-          </TouchableOpacity>
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center" numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
-              FaithJournal
-            </Text>
-          </View>
-          <TouchableOpacity className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700" onPress={() => router.push('/(tabs)/profile')}>
-            <Image source={{ uri: user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL }} className="w-full h-full" />
-          </TouchableOpacity>
-        </SafeAreaView>
+        <Header leftAction="menu" rightAction="avatar" hideBorder safeArea />
 
         {/* Top Nav (Categories) */}
         <View className="border-b border-slate-100 dark:border-slate-800">

@@ -1,3 +1,4 @@
+import Header from '@/components/Header';
 import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
@@ -71,19 +72,7 @@ export default function CreateScreen() {
         className="flex-1"
       >
         {/* Custom Header */}
-        <View className="bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <TouchableOpacity className="w-8 justify-center" onPress={openDrawer}>
-            <Menu color={colors.icon} size={24} />
-          </TouchableOpacity>
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center" numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
-              FaithJournal
-            </Text>
-          </View>
-          <TouchableOpacity className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700" onPress={() => router.push('/(tabs)/profile')}>
-            <Image source={{ uri: user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL }} className="w-full h-full" />
-          </TouchableOpacity>
-        </View>
+        <Header leftAction="menu" rightAction="avatar" />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
 

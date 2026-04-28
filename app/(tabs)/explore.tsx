@@ -1,3 +1,4 @@
+import Header from '@/components/Header';
 import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PostCard from '@/components/PostCard';
@@ -247,19 +248,7 @@ export default function ExploreScreen() {
       <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
         {/* Persistent Search Bar Header */}
         <View>
-          <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-            <TouchableOpacity className="w-8 justify-center" onPress={openDrawer}>
-              <Menu color={colors.icon} size={24} />
-            </TouchableOpacity>
-            <View className="flex-1 items-center justify-center">
-              <Text className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
-                Search
-              </Text>
-            </View>
-            <View className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
-              <Image source={{ uri: user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL }} className="w-full h-full" />
-            </View>
-          </View>
+          <Header title="Search" leftAction="menu" rightAction="avatar" />
 
           <View className="px-5 py-4">
             <View className="bg-[#F3F4F6] dark:bg-[#222222] rounded-2xl flex-row items-center px-4 py-3.5">

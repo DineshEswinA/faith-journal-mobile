@@ -1,3 +1,4 @@
+import Header from '@/components/Header';
 import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { getReadTime } from '@/lib/readTime';
 import { supabase } from '@/lib/supabase';
@@ -183,16 +184,7 @@ export default function PostDetailScreen() {
       >
 
         {/* Custom Header */}
-        <View className="bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <TouchableOpacity className="w-8 justify-center" onPress={() => router.back()}>
-            <ChevronLeft color={colors.icon} size={28} />
-          </TouchableOpacity>
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center" numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
-              FaithJournal
-            </Text>
-          </View>
-        </View>
+        <Header />
 
         <ScrollView
           ref={scrollRef}

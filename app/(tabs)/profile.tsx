@@ -1,3 +1,4 @@
+import Header from '@/components/Header';
 import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
@@ -152,19 +153,7 @@ export default function ProfileScreen() {
     <TouchableWithoutFeedback onPress={() => { if(activeMenuPostId) setActiveMenuPostId(null); }}>
       <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
         {/* Header Navigation */}
-        <View className="bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-          <TouchableOpacity className="w-8 justify-center" onPress={openDrawer}>
-            <Menu color={colors.icon} size={24} />
-          </TouchableOpacity>
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-xl font-bold text-slate-900 dark:text-slate-100 text-center" numberOfLines={1}>
-              Profile
-            </Text>
-          </View>
-          <TouchableOpacity className="w-8 items-end justify-center" onPress={() => router.push('/settings')}>
-            <Settings color={colors.icon} size={24} />
-          </TouchableOpacity>
-        </View>
+        <Header title="Profile" titleStyle="sans" leftAction="menu" rightAction="settings" />
 
         <FlatList
           data={feedList}

@@ -1,3 +1,4 @@
+import Header from '@/components/Header';
 import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { getReadTime } from '@/lib/readTime';
 import { supabase } from '@/lib/supabase';
@@ -219,21 +220,7 @@ export default function AuthorProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
       {/* Header */}
-      <View className="flex-row justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-        <TouchableOpacity onPress={() => router.back()}>
-          <ArrowLeft size={24} color={colors.icon} />
-        </TouchableOpacity>
-        <Text
-          className="text-xl font-bold text-slate-900 dark:text-slate-100 flex-1 text-center mx-4"
-          style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}
-          numberOfLines={1}
-        >
-          FaithJournal
-        </Text>
-        <TouchableOpacity>
-          <Share2 size={22} color={colors.icon} />
-        </TouchableOpacity>
-      </View>
+      <Header rightAction="share" />
 
       <FlatList
         data={posts}
