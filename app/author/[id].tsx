@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { getReadTime } from '@/lib/readTime';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
@@ -133,7 +134,7 @@ export default function AuthorProfileScreen() {
     );
   }
 
-  const displayAvatar = author?.avatar_url || `https://i.pravatar.cc/150?u=${id}`;
+  const displayAvatar = author?.avatar_url || DEFAULT_AVATAR_URL;
   const displayName = author?.full_name || author?.username || 'Anonymous';
   const displayBio = author?.bio || 'Spiritual seeker, storyteller, and lover of the Word. Sharing reflections on life and faith.';
   const isOwn = user?.id === id;
@@ -227,7 +228,7 @@ export default function AuthorProfileScreen() {
           style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}
           numberOfLines={1}
         >
-          Faith Journal
+          FaithJournal
         </Text>
         <TouchableOpacity>
           <Share2 size={22} color={colors.icon} />

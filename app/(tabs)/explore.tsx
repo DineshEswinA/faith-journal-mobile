@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PostCard from '@/components/PostCard';
 import { supabase } from '@/lib/supabase';
@@ -256,7 +257,7 @@ export default function ExploreScreen() {
               </Text>
             </View>
             <View className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
-              <Image source={{ uri: 'https://i.pravatar.cc/100?img=11' }} className="w-full h-full" />
+              <Image source={{ uri: user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL }} className="w-full h-full" />
             </View>
           </View>
 

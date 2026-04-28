@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { getReadTime } from '@/lib/readTime';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useRouter } from 'expo-router';
@@ -41,7 +42,7 @@ export default function PostCard({
   const dateStr = item.created_at
     ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '';
-  const authorAvatar = authorProfile?.avatar_url || `https://i.pravatar.cc/100?img=${index + 10}`;
+  const authorAvatar = authorProfile?.avatar_url || DEFAULT_AVATAR_URL;
   const authorName = authorProfile?.full_name || authorProfile?.username || authorProfile?.email || 'Anonymous';
 
   const handleCardPress = () => {

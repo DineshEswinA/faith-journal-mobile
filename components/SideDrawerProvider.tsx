@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { usePathname, useRouter } from 'expo-router';
 import { BookOpen, CircleHelp, Compass, LogOut, PenSquare, Settings, Shield, User, X } from 'lucide-react-native';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -119,7 +120,7 @@ export function SideDrawerProvider({ children }: { children: ReactNode }) {
     router.replace('/(auth)/sign-in');
   };
 
-  const displayAvatar = profileData?.avatar_url || user?.user_metadata?.avatar_url || 'https://i.pravatar.cc/100?img=11';
+  const displayAvatar = profileData?.avatar_url || user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL;
   const displayName = profileData?.full_name || profileData?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Faith Journal Member';
 
   return (

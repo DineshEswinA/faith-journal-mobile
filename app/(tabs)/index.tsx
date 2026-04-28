@@ -1,5 +1,6 @@
 import PostCard from '@/components/PostCard';
 import { getReadTime } from '@/lib/readTime';
+import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'expo-router';
@@ -45,7 +46,7 @@ export default function HomeScreen() {
           comments(count),
           bookmarks(count),
           author_id,
-          profiles(username, full_name),
+          profiles(username, full_name, avatar_url),
           categories(name)
         `)
         .order('created_at', { ascending: false });
@@ -131,11 +132,11 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <View className="flex-1 items-center justify-center">
             <Text className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center" numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
-              Faith Journal
+              FaithJournal
             </Text>
           </View>
           <TouchableOpacity className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700" onPress={() => router.push('/(tabs)/profile')}>
-            <Image source={{ uri: 'https://i.pravatar.cc/100?img=1' }} className="w-full h-full" />
+            <Image source={{ uri: user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL }} className="w-full h-full" />
           </TouchableOpacity>
         </SafeAreaView>
 

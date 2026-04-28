@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { getReadTime } from '@/lib/readTime';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
@@ -28,7 +29,7 @@ export default function PostDetailScreen() {
   const loadPost = async () => {
     const { data } = await supabase
       .from('posts')
-      .select('*, likes(count), profiles(username, full_name, bio, avatar_url), comments(*, profiles(username, full_name)), categories(name)')
+      .select('*, likes(count), profiles(username, full_name, bio, avatar_url), comments(*, profiles(username, full_name, avatar_url)), categories(name)')
       .eq('id', id)
       .single();
 
@@ -57,7 +58,7 @@ export default function PostDetailScreen() {
 
     const { data: suggestions } = await supabase
       .from('posts')
-      .select('*, likes(count), comments(count), bookmarks(count), categories(name)')
+      .select('*, likes(count), comments(count), bookmarks(count), categories(name), profiles(username, full_name, avatar_url)')
       .neq('id', id)
       .limit(3);
     setSuggestedPosts(suggestions || []);
@@ -188,7 +189,7 @@ export default function PostDetailScreen() {
           </TouchableOpacity>
           <View className="flex-1 items-center justify-center">
             <Text className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center" numberOfLines={1} adjustsFontSizeToFit style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif', fontStyle: 'italic' }}>
-              Faith Journal
+              FaithJournal
             </Text>
           </View>
         </View>
@@ -209,7 +210,7 @@ export default function PostDetailScreen() {
 
             <View className="flex-row items-center justify-center gap-x-3 mb-6">
               <View className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
-                <Image source={{ uri: post.user?.avatar_url || 'https://i.pravatar.cc/100?img=3' }} className="w-full h-full" />
+                <Image source={{ uri: post.user?.avatar_url || DEFAULT_AVATAR_URL }} className="w-full h-full" />
               </View>
               <TouchableOpacity onPress={() => router.push(`/author/${post.author_id}` as any)}>
                 <Text className="text-[10px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-[1px]">{post.user?.full_name || post.user?.username || 'Unknown Author'}</Text>
@@ -271,7 +272,7 @@ export default function PostDetailScreen() {
             <View className="bg-[#F3F4F6] dark:bg-[#222222] rounded-[24px] p-6">
               <TouchableOpacity onPress={() => router.push(`/author/${post.author_id}` as any)} className="flex-row items-center gap-x-4 mb-4">
                 <View className="w-14 h-14 rounded-xl overflow-hidden bg-slate-300 dark:bg-slate-600">
-                  <Image source={{ uri: post.user?.avatar_url || 'https://i.pravatar.cc/100?img=3' }} className="w-full h-full" />
+                  <Image source={{ uri: post.user?.avatar_url || DEFAULT_AVATAR_URL }} className="w-full h-full" />
                 </View>
                 <View className="flex-1">
                   <Text className="text-lg font-bold text-slate-900 dark:text-slate-100" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
@@ -330,7 +331,7 @@ export default function PostDetailScreen() {
                   <View key={comment.id} className="mb-4 bg-slate-50 dark:bg-[#222222] p-5 rounded-2xl">
                     <View className="flex-row items-center mb-3">
                       <View className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full items-center justify-center mr-3 overflow-hidden">
-                        <Image source={{ uri: `https://i.pravatar.cc/100?img=${comment.user_id.charCodeAt(0) % 70}` }} className="w-full h-full" />
+                        <Image source={{ uri: comment.profiles?.avatar_url || DEFAULT_AVATAR_URL }} className="w-full h-full" />
                       </View>
                       <Text className="font-bold text-slate-800 dark:text-slate-200 mr-2 text-sm">
                         {comment.profiles?.full_name || comment.profiles?.username || 'Unknown'}

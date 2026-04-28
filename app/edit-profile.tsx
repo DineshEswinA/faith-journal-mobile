@@ -1,5 +1,6 @@
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import { useState, useEffect } from 'react';
+import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'expo-router';
@@ -133,7 +134,7 @@ export default function EditProfileScreen() {
     );
   }
 
-  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || 'https://i.pravatar.cc/100?img=11';
+  const displayAvatar = profile?.avatar_url || user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL;
 
   return (
     <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>

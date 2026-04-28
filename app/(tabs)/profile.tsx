@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'expo-router';
@@ -39,13 +40,13 @@ export default function ProfileScreen() {
 
       const { data: postsData } = await supabase
         .from('posts')
-        .select('*, likes(count), comments(count), bookmarks(count), profiles(username, full_name), categories(name)')
+        .select('*, likes(count), comments(count), bookmarks(count), profiles(username, full_name, avatar_url), categories(name)')
         .eq('author_id', user.id)
         .order('created_at', { ascending: false });
 
       const { data: bookmarksData } = await supabase
         .from('bookmarks')
-        .select('post_id, posts(*, likes(count), comments(count), bookmarks(count), categories(name), profiles(username, full_name))')
+        .select('post_id, posts(*, likes(count), comments(count), bookmarks(count), categories(name), profiles(username, full_name, avatar_url))')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -82,7 +83,7 @@ export default function ProfileScreen() {
     );
   }
 
-  const displayAvatar = profileData?.avatar_url || user?.user_metadata?.avatar_url || 'https://i.pravatar.cc/100?img=11';
+  const displayAvatar = profileData?.avatar_url || user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL;
   const displayName = profileData?.full_name || profileData?.username || user?.email?.split('@')[0] || 'Unknown User';
   const displayBio = profileData?.bio || "Spiritual seeker, storyteller, and lover of the Word. Sharing reflections on life and faith.";
 
