@@ -1,4 +1,7 @@
 import { useColorScheme } from 'nativewind';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export const THEME_STORAGE_KEY = '@faith_journal_theme';
 
 const colors = {
   light: {
@@ -26,8 +29,18 @@ const colors = {
 };
 
 export function useAppTheme() {
-  const { colorScheme, setColorScheme, toggleColorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme: setNativeWindColorScheme, toggleColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+
+  const setColorScheme = async (scheme: 'light' | 'dark' | 'system') => {
+    setNativeWindColorScheme(scheme);
+    try {
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, scheme);
+    } catch (e) {
+      console.log('Error saving theme', e);
+    }
+  };
+
   return {
     isDark,
     colorScheme,

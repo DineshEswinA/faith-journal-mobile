@@ -9,7 +9,9 @@ import 'react-native-reanimated';
 import './global.css';
 
 import { useColorScheme } from 'nativewind';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/authStore';
+import { THEME_STORAGE_KEY } from '@/hooks/useAppTheme';
 
 export {
   ErrorBoundary
@@ -44,8 +46,24 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   const { session, isInitialized } = useAuthStore();
+
+  useEffect(() => {
+    const initTheme = async () => {
+      try {
+        const storedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (storedTheme === 'light' || storedTheme === 'dark') {
+          setColorScheme(storedTheme as any);
+        } else {
+          setColorScheme('light');
+        }
+      } catch (e) {
+        setColorScheme('light');
+      }
+    };
+    initTheme();
+  }, []);
   const segments = useSegments();
   const router = useRouter();
 
