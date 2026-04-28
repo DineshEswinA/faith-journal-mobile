@@ -227,7 +227,7 @@ export default function AuthorProfileScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderPost}
         ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-6 mb-10 mt-2" />}
-        ListHeaderComponent={ListHeader}
+        ListHeaderComponent={<ListHeader />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 80 }}
         onScrollBeginDrag={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}

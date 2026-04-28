@@ -212,7 +212,7 @@ export default function HomeScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#047857" />
           }
-          ListHeaderComponent={renderHeader}
+          ListHeaderComponent={renderHeader()}
           ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-6 mb-10 mt-2" />}
           renderItem={({ item, index }) => (
             <PostCard

@@ -127,14 +127,13 @@ export function SideDrawerProvider({ children }: { children: ReactNode }) {
     <SideDrawerContext.Provider value={value}>
       <View className="flex-1">
         {children}
-        {isOpen ? (
-          <View className="absolute inset-0 z-50">
+        <View className="absolute inset-0 z-50" pointerEvents={isOpen ? 'auto' : 'none'}>
             <Animated.View
               pointerEvents="none"
               style={{ opacity: overlayOpacity }}
               className="absolute inset-0 bg-black/35"
             />
-            <Pressable className="absolute inset-0" onPress={closeDrawer} />
+            <Pressable className="absolute inset-0" onPress={closeDrawer} disabled={!isOpen} />
             <Animated.View
               style={{ transform: [{ translateX }] }}
               className="absolute left-0 top-0 bottom-0 w-[84%] max-w-[320px] bg-white dark:bg-[#111111] shadow-2xl"
@@ -216,7 +215,6 @@ export function SideDrawerProvider({ children }: { children: ReactNode }) {
               </SafeAreaView>
             </Animated.View>
           </View>
-        ) : null}
       </View>
     </SideDrawerContext.Provider>
   );
