@@ -6,6 +6,8 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Camera, Link as LinkIcon, Lock } from 'lucide-react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import * as ImagePicker from 'expo-image-picker';
+import { decode } from 'base64-arraybuffer';
 
 export default function EditProfileScreen() {
   const { user, signOut } = useAuthStore();
@@ -15,6 +17,62 @@ export default function EditProfileScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const changeProfileImage = async () => {
+    if (!user) return;
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (result.canceled || !result.assets[0].base64) {
+        return;
+      }
+
+      setUploadingImage(true);
+      const imageBase64 = result.assets[0].base64;
+      const fileExt = result.assets[0].uri.split('.').pop() || 'jpg';
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('faith-journal')
+        .upload(filePath, decode(imageBase64), {
+          contentType: `image/${fileExt}`,
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('faith-journal')
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      setProfile((prev: any) => ({ ...prev, avatar_url: publicUrl }));
+
+      // Update global user metadata if needed (optional)
+      await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      });
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
@@ -92,7 +150,7 @@ export default function EditProfileScreen() {
             </Text>
           </View>
           <TouchableOpacity className="w-10 items-end justify-center" onPress={handleSave} disabled={saving}>
-             {saving ? <ActivityIndicator size="small" color="#047857" /> : <Text className="font-bold text-[#047857] text-[15px]">Save</Text>}
+            {saving ? <ActivityIndicator size="small" color="#047857" /> : <Text className="font-bold text-[#047857] text-[15px]">Save</Text>}
           </TouchableOpacity>
         </View>
 
@@ -103,13 +161,24 @@ export default function EditProfileScreen() {
             <View className="relative">
               <View className="w-[104px] h-[104px] rounded-2xl overflow-hidden bg-slate-900 dark:bg-slate-800 shadow-sm">
                 <Image source={{ uri: displayAvatar }} className="w-full h-full opacity-80" resizeMode="cover" />
+                {uploadingImage && (
+                  <View className="absolute inset-0 items-center justify-center bg-black/40">
+                    <ActivityIndicator color="white" />
+                  </View>
+                )}
               </View>
-              <TouchableOpacity className="absolute -bottom-2 -right-2 bg-[#047857] w-8 h-8 rounded-lg items-center justify-center border-2 border-[#FAFAFA] dark:border-[#111111]">
+              <TouchableOpacity
+                onPress={changeProfileImage}
+                disabled={uploadingImage}
+                className="absolute -bottom-2 -right-2 bg-[#047857] w-8 h-8 rounded-lg items-center justify-center border-2 border-[#FAFAFA] dark:border-[#111111]"
+              >
                 <Camera size={16} color="white" />
               </TouchableOpacity>
             </View>
-            <TouchableOpacity className="mt-4">
-              <Text className="text-[10px] font-bold text-[#047857] tracking-[1px] uppercase">CHANGE PHOTO</Text>
+            <TouchableOpacity className="mt-4" onPress={changeProfileImage} disabled={uploadingImage}>
+              <Text className="text-[10px] font-bold text-[#047857] tracking-[1px] uppercase">
+                {uploadingImage ? 'UPLOADING...' : 'CHANGE PHOTO'}
+              </Text>
             </TouchableOpacity>
           </View>
 

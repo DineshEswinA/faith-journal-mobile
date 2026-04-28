@@ -118,7 +118,13 @@ ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
 -- Base RLS Policy Examples (You can enhance these in Supabase)
 -- CREATE POLICY "Users can edit own posts" ON public.posts FOR UPDATE USING (auth.uid() = author_id);
--- CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
+
+-- Profiles Table RLS Policies
+CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = user_id);
 
 -- 14️⃣ Seed Categories
 INSERT INTO public.categories (name, slug) VALUES
@@ -147,3 +153,28 @@ insert into tags (name) values
 ('devotion'),
 ('scripture'),
 ('blessing');
+
+-- 15️⃣ Storage Setup (Avatars)
+-- Create the storage bucket for profile pictures (Note: Ensure this is run if 'faith-journal' bucket doesn't exist)
+-- Allow public viewing of all files in the bucket
+CREATE POLICY "Public Access" 
+ON storage.objects FOR SELECT 
+USING (bucket_id = 'faith-journal');
+
+-- Allow authenticated users to upload files
+CREATE POLICY "Users can upload their own avatars" 
+ON storage.objects FOR INSERT 
+TO authenticated 
+WITH CHECK (
+  bucket_id = 'faith-journal' AND 
+  (auth.uid())::text = (storage.foldername(name))[1]
+);
+
+-- Allow authenticated users to update their files
+CREATE POLICY "Users can update their own avatars" 
+ON storage.objects FOR UPDATE 
+TO authenticated 
+USING (
+  bucket_id = 'faith-journal' AND 
+  (auth.uid())::text = (storage.foldername(name))[1]
+);
