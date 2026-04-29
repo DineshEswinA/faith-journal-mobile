@@ -119,12 +119,24 @@ export default function PostDetailScreen() {
 
   const handleBookmark = async () => {
     if (!user || !id) return;
-    if (isBookmarked) {
-      await supabase.from('bookmarks').delete().match({ user_id: user.id, post_id: id });
-      setIsBookmarked(false);
-    } else {
-      await supabase.from('bookmarks').insert({ user_id: user.id, post_id: id });
-      setIsBookmarked(true);
+    const postId = Array.isArray(id) ? id[0] : id;
+    const isCurrentlyBookmarked = isBookmarked;
+    
+    // Optimistically update
+    setIsBookmarked(!isCurrentlyBookmarked);
+
+    try {
+      if (isCurrentlyBookmarked) {
+        const { error } = await supabase.from('bookmarks').delete().eq('user_id', user.id).eq('post_id', postId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('bookmarks').insert({ user_id: user.id, post_id: postId });
+        if (error) throw error;
+      }
+    } catch (error: any) {
+      console.error('Error toggling bookmark:', error);
+      Alert.alert('Bookmark Error', error?.message || 'Failed to update bookmark in the database.');
+      setIsBookmarked(isCurrentlyBookmarked);
     }
   };
 

@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { Menu } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Platform, RefreshControl, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Platform, RefreshControl, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useSideDrawer } from '@/components/SideDrawerProvider';
@@ -107,16 +107,60 @@ export default function HomeScreen() {
   }, [user?.id, selectedCategory]);
 
   const getFeaturedImage = () => 'https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?q=80&w=3264&auto=format&fit=crop';
-  const getStandardImage = (id: string) => `https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&q=80&sig=${id}`;
 
   const handleBookmark = async (postId: string) => {
     if (!user) return;
-    if (bookmarkedIds.has(postId)) {
-      await supabase.from('bookmarks').delete().match({ user_id: user.id, post_id: postId });
-      setBookmarkedIds(prev => { const next = new Set(prev); next.delete(postId); return next; });
-    } else {
-      await supabase.from('bookmarks').insert({ user_id: user.id, post_id: postId });
-      setBookmarkedIds(prev => new Set(prev).add(postId));
+    const isCurrentlyBookmarked = bookmarkedIds.has(postId);
+
+    // Optimistically update local state
+    setBookmarkedIds(prev => {
+      const next = new Set(prev);
+      if (isCurrentlyBookmarked) next.delete(postId);
+      else next.add(postId);
+      return next;
+    });
+
+    setPosts(prevPosts => prevPosts.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          bookmarks_count: isCurrentlyBookmarked 
+            ? Math.max(0, (post.bookmarks_count || 0) - 1)
+            : (post.bookmarks_count || 0) + 1
+        };
+      }
+      return post;
+    }));
+
+    try {
+      if (isCurrentlyBookmarked) {
+        const { error } = await supabase.from('bookmarks').delete().eq('user_id', user.id).eq('post_id', postId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('bookmarks').insert({ user_id: user.id, post_id: postId });
+        if (error) throw error;
+      }
+    } catch (error: any) {
+      console.error('Error toggling bookmark:', error);
+      Alert.alert('Bookmark Error', error?.message || 'Failed to update bookmark in the database.');
+      // Revert optimistic update on failure
+      setBookmarkedIds(prev => {
+        const next = new Set(prev);
+        if (isCurrentlyBookmarked) next.add(postId);
+        else next.delete(postId);
+        return next;
+      });
+      setPosts(prevPosts => prevPosts.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            bookmarks_count: isCurrentlyBookmarked 
+              ? (post.bookmarks_count || 0) + 1
+              : Math.max(0, (post.bookmarks_count || 0) - 1)
+          };
+        }
+        return post;
+      }));
     }
   };
 
