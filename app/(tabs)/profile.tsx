@@ -150,35 +150,33 @@ export default function ProfileScreen() {
   );
 
   return (
-    <TouchableWithoutFeedback onPress={() => { if(activeMenuPostId) setActiveMenuPostId(null); }}>
-      <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
-        {/* Header Navigation */}
-        <Header title="Profile" titleStyle="sans" leftAction="menu" rightAction="settings" />
+    <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
+      {/* Header Navigation */}
+      <Header title="Profile" titleStyle="sans" leftAction="menu" rightAction="settings" />
 
-        <FlatList
-          data={feedList}
-          keyExtractor={(item) => item.id}
-          ListHeaderComponent={renderHeader()}
-          ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-6 mb-10 mt-2" />}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 80 }}
-          onScrollBeginDrag={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}
-          renderItem={({ item, index }) => (
-            <PostCard
-              item={item}
-              index={index}
-              showAuthor={activeTab === 'saved'}
-              activeMenuPostId={activeMenuPostId}
-              onMenuToggle={(id) => setActiveMenuPostId(activeMenuPostId === id ? null : id)}
-            />
-          )}
-          ListEmptyComponent={
-            <Text className="text-center font-serif text-slate-400 dark:text-slate-500 mt-10 italic">
-              {activeTab === 'saved' ? 'No bookmarked posts yet.' : 'This journal is currently empty.'}
-            </Text>
-          }
-        />
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      <FlatList
+        data={feedList}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderHeader()}
+        ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-4 mb-6" />}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        onScrollBeginDrag={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}
+        renderItem={({ item, index }) => (
+          <PostCard
+            item={item}
+            index={index}
+            showAuthor={activeTab === 'saved'}
+            activeMenuPostId={activeMenuPostId}
+            onMenuToggle={(id) => setActiveMenuPostId(activeMenuPostId === id ? null : id)}
+          />
+        )}
+        ListEmptyComponent={
+          <Text className="text-center font-serif text-slate-400 dark:text-slate-500 mt-10 italic">
+            {activeTab === 'saved' ? 'No bookmarked posts yet.' : 'This journal is currently empty.'}
+          </Text>
+        }
+      />
+    </SafeAreaView>
   );
 }

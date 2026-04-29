@@ -203,42 +203,40 @@ export default function HomeScreen() {
   const remainingPosts = posts.slice(4);
 
   return (
-    <TouchableWithoutFeedback onPress={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}>
-      <View className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]">
-        <FlatList
-          data={remainingPosts}
-          keyExtractor={(item) => item.id}
-          onScrollBeginDrag={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#047857" />
-          }
-          ListHeaderComponent={renderHeader()}
-          ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-6 mb-10 mt-2" />}
-          renderItem={({ item, index }) => (
-            <PostCard
-              item={item}
-              index={index}
-              variant="sideBySide"
-              isBookmarked={bookmarkedIds.has(item.id)}
-              onBookmark={handleBookmark}
-              activeMenuPostId={activeMenuPostId}
-              onMenuToggle={(id) => setActiveMenuPostId(activeMenuPostId === id ? null : id)}
-              showAuthor={true}
-            />
-          )}
-          ListEmptyComponent={
-            !loading ? (
-              <View className="py-20 items-center">
-                <Text className="text-slate-400 dark:text-slate-500 font-serif">A quiet space awaits its first entry.</Text>
-              </View>
-            ) : (
-              <View className="py-20 items-center">
-                <ActivityIndicator size="large" color="#047857" />
-              </View>
-            )
-          }
-        />
-      </View>
-    </TouchableWithoutFeedback>
+    <View className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]">
+      <FlatList
+        data={remainingPosts}
+        keyExtractor={(item) => item.id}
+        onScrollBeginDrag={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#047857" />
+        }
+        ListHeaderComponent={renderHeader()}
+        ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-4 mb-6" />}
+        renderItem={({ item, index }) => (
+          <PostCard
+            item={item}
+            index={index}
+            variant="sideBySide"
+            isBookmarked={bookmarkedIds.has(item.id)}
+            onBookmark={handleBookmark}
+            activeMenuPostId={activeMenuPostId}
+            onMenuToggle={(id) => setActiveMenuPostId(activeMenuPostId === id ? null : id)}
+            showAuthor={true}
+          />
+        )}
+        ListEmptyComponent={
+          !loading ? (
+            <View className="py-20 items-center">
+              <Text className="text-slate-400 dark:text-slate-500 font-serif">A quiet space awaits its first entry.</Text>
+            </View>
+          ) : (
+            <View className="py-20 items-center">
+              <ActivityIndicator size="large" color="#047857" />
+            </View>
+          )
+        }
+      />
+    </View>
   );
 }

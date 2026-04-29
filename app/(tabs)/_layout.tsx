@@ -15,6 +15,7 @@ export default function TabLayout() {
     <SwipeableTabs
       tabBarPosition="bottom"
       screenOptions={{
+        animationEnabled: false,
         tabBarActiveTintColor: '#047857',
         tabBarInactiveTintColor: isDark ? '#4B5563' : '#9ca3af',
         tabBarShowIcon: true,

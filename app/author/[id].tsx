@@ -226,7 +226,7 @@ export default function AuthorProfileScreen() {
         data={posts}
         keyExtractor={(item) => item.id}
         renderItem={renderPost}
-        ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-6 mb-10 mt-2" />}
+        ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-4 mb-6" />}
         ListHeaderComponent={<ListHeader />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 80 }}

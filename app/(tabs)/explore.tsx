@@ -222,9 +222,8 @@ export default function ExploreScreen() {
             <TouchableOpacity
               key={cat.id}
               onPress={() => handleCategoryPress(cat)}
-              className={`px-4 py-2 rounded-xl shadow-sm border ${
-                selectedCategory?.id === cat.id ? 'bg-[#047857] border-[#047857]' : 'bg-white dark:bg-[#1A1A1A] border-slate-200 dark:border-slate-700'
-              }`}
+              className={`px-4 py-2 rounded-xl shadow-sm border ${selectedCategory?.id === cat.id ? 'bg-[#047857] border-[#047857]' : 'bg-white dark:bg-[#1A1A1A] border-slate-200 dark:border-slate-700'
+                }`}
             >
               <Text className={`text-[13px] font-bold ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                 {cat.name}
@@ -244,64 +243,62 @@ export default function ExploreScreen() {
   );
 
   return (
-    <TouchableWithoutFeedback onPress={() => { if(activeMenuPostId) setActiveMenuPostId(null); }}>
-      <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
-        {/* Persistent Search Bar Header */}
-        <View>
-          <Header title="Search" leftAction="menu" rightAction="avatar" />
+    <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
+      {/* Persistent Search Bar Header */}
+      <View>
+        <Header title="Search" leftAction="menu" rightAction="avatar" />
 
-          <View className="px-5 py-4">
-            <View className="bg-[#F3F4F6] dark:bg-[#222222] rounded-2xl flex-row items-center px-4 py-3.5">
-              <Search size={18} color={colors.iconMuted} />
-              <TextInput
-                className="flex-1 text-slate-800 dark:text-slate-200 text-[15px] mx-3"
-                placeholder="Search for posts, authors, or topics..."
-                placeholderTextColor={colors.placeholder}
-                value={query}
-                onChangeText={setQuery}
-                returnKeyType="search"
-                onSubmitEditing={() => saveRecentSearch(query)}
-              />
-              {query.length > 0 && (
-                <TouchableOpacity onPress={clearSearch}>
-                  <X size={16} color={colors.iconMuted} />
-                </TouchableOpacity>
-              )}
-            </View>
+        <View className="px-5 py-4">
+          <View className="bg-[#F3F4F6] dark:bg-[#222222] rounded-2xl flex-row items-center px-4 py-3.5">
+            <Search size={18} color={colors.iconMuted} />
+            <TextInput
+              className="flex-1 text-slate-800 dark:text-slate-200 text-[15px] mx-3"
+              placeholder="Search for posts, authors, or topics..."
+              placeholderTextColor={colors.placeholder}
+              value={query}
+              onChangeText={setQuery}
+              returnKeyType="search"
+              onSubmitEditing={() => saveRecentSearch(query)}
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={clearSearch}>
+                <X size={16} color={colors.iconMuted} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
+      </View>
 
-        {loading || isBootstrapping ? (
-          <ActivityIndicator color="#047857" className="mt-10" />
-        ) : (
-          <FlatList
-            data={displayList}
-            keyExtractor={(item) => item.id}
-            ListHeaderComponent={renderHeader}
-            ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-6 mb-10 mt-2" />}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 80 }}
-            onScrollBeginDrag={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}
-            renderItem={({ item, index }) => (
-              <PostCard
-                item={item}
-                index={index}
-                activeMenuPostId={activeMenuPostId}
-                onMenuToggle={(id) => setActiveMenuPostId(activeMenuPostId === id ? null : id)}
-              />
-            )}
-            ListEmptyComponent={
-              query.length >= 2 ? (
-                <Text className="text-center font-serif italic text-slate-400 dark:text-slate-500 mt-10">No results found for "{query}"</Text>
-              ) : (
-                <Text className="text-center font-serif italic text-slate-400 dark:text-slate-500 mt-10">
-                  {selectedCategory ? `No posts found in ${selectedCategory.name}.` : 'No posts available yet.'}
-                </Text>
-              )
-            }
-          />
-        )}
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+      {loading || isBootstrapping ? (
+        <ActivityIndicator color="#047857" className="mt-10" />
+      ) : (
+        <FlatList
+          data={displayList}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          ItemSeparatorComponent={() => <View className="h-[1px] bg-slate-200 dark:bg-slate-800 mx-4 mb-6" />}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 80 }}
+          onScrollBeginDrag={() => { if (activeMenuPostId) setActiveMenuPostId(null); }}
+          renderItem={({ item, index }) => (
+            <PostCard
+              item={item}
+              index={index}
+              activeMenuPostId={activeMenuPostId}
+              onMenuToggle={(id) => setActiveMenuPostId(activeMenuPostId === id ? null : id)}
+            />
+          )}
+          ListEmptyComponent={
+            query.length >= 2 ? (
+              <Text className="text-center font-serif italic text-slate-400 dark:text-slate-500 mt-10">No results found for "{query}"</Text>
+            ) : (
+              <Text className="text-center font-serif italic text-slate-400 dark:text-slate-500 mt-10">
+                {selectedCategory ? `No posts found in ${selectedCategory.name}.` : 'No posts available yet.'}
+              </Text>
+            )
+          }
+        />
+      )}
+    </SafeAreaView>
   );
 }
