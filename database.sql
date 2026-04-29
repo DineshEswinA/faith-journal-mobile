@@ -115,9 +115,15 @@ CREATE INDEX IF NOT EXISTS idx_views_post on public.post_views(post_id);
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bookmarks ENABLE ROW LEVEL SECURITY;
 
 -- Base RLS Policy Examples (You can enhance these in Supabase)
 -- CREATE POLICY "Users can edit own posts" ON public.posts FOR UPDATE USING (auth.uid() = author_id);
+
+-- Bookmarks Table RLS Policies
+CREATE POLICY "Users can view their own bookmarks" ON public.bookmarks FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own bookmarks" ON public.bookmarks FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own bookmarks" ON public.bookmarks FOR DELETE USING (auth.uid() = user_id);
 
 -- Profiles Table RLS Policies
 CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
