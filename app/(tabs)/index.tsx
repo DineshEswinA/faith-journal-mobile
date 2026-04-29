@@ -176,7 +176,7 @@ export default function HomeScreen() {
             <View className="bg-[#ECF1ED] dark:bg-[#0D2318] rounded-[24px] p-8 mb-12">
               <Text className="text-[9px] font-bold text-[#047857] tracking-[2px] uppercase mb-8">EDITOR'S CHOICE</Text>
               {editorsChoice.map((p, i) => (
-                <TouchableOpacity key={p.id} className={`mb-6 ${i !== editorsChoice.length - 1 ? 'border-b border-slate-200/50 dark:border-slate-700/50 pb-6' : ''}`} activeOpacity={0.7} onPress={() => router.push(`/post/${p.id}`)}>
+                <TouchableOpacity key={p.id} className={`mb-6 ${i !== editorsChoice.length - 1 ? 'border-b  dark:border-slate-700/50 pb-6' : ''}`} activeOpacity={0.7} onPress={() => router.push(`/post/${p.id}`)}>
                   <Text className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-3 leading-snug" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
                     {p.title}
                   </Text>

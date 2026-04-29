@@ -1,18 +1,26 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Tabs } from 'expo-router';
+import { withLayoutContext } from 'expo-router';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Home, Search, Edit3, Bell, User } from 'lucide-react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
+
+const TopTabs = createMaterialTopTabNavigator().Navigator;
+const SwipeableTabs = withLayoutContext(TopTabs);
 
 export default function TabLayout() {
   const { isDark } = useAppTheme();
 
   return (
-    <Tabs
+    <SwipeableTabs
+      tabBarPosition="bottom"
       screenOptions={{
         tabBarActiveTintColor: '#047857',
         tabBarInactiveTintColor: isDark ? '#4B5563' : '#9ca3af',
-        headerShown: false,
+        tabBarShowIcon: true,
+        tabBarShowLabel: true,
+        tabBarIndicatorStyle: { height: 0 },
+        tabBarPressColor: 'transparent',
         tabBarStyle: {
           backgroundColor: isDark ? '#111111' : '#ffffff',
           borderTopColor: isDark ? '#1F2937' : '#f1f5f9',
@@ -20,14 +28,23 @@ export default function TabLayout() {
           height: 85,
           paddingBottom: 25,
           paddingTop: 10,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: 'bold',
           marginTop: 4,
+          textTransform: 'none',
+        },
+        tabBarIconStyle: {
+          width: 40,
+          height: 40,
+          alignItems: 'center',
+          justifyContent: 'center',
         }
       }}>
-      <Tabs.Screen
+      <SwipeableTabs.Screen
         name="index"
         options={{
           title: 'Home',
@@ -38,7 +55,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <SwipeableTabs.Screen
         name="explore"
         options={{
           title: 'Search',
@@ -49,7 +66,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <SwipeableTabs.Screen
         name="create"
         options={{
           title: 'Write',
@@ -60,7 +77,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <SwipeableTabs.Screen
         name="activity"
         options={{
           title: 'Activity',
@@ -71,7 +88,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      <SwipeableTabs.Screen
         name="profile"
         options={{
           title: 'You',
@@ -82,6 +99,6 @@ export default function TabLayout() {
           ),
         }}
       />
-    </Tabs>
+    </SwipeableTabs>
   );
 }
