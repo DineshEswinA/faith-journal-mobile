@@ -1,4 +1,4 @@
-import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
+import { DEFAULT_AVATAR_URL, DEFAULT_POST_COVER_IMAGE } from '@/constants/AppConstants';
 import { getReadTime } from '@/lib/readTime';
 import { sharePost } from '@/lib/sharePost';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -38,7 +38,7 @@ export default function PostCard({
     ? item.user[0]
     : item.user || (Array.isArray(item.profiles) ? item.profiles[0] : item.profiles);
 
-  const coverImg = item.cover_image || `https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&q=80&sig=${item.id || index}`;
+  const coverImg = item.cover_image || DEFAULT_POST_COVER_IMAGE;
   const catName = item.category || item.categories?.name?.toUpperCase() || 'STORY';
   const dateStr = item.created_at
     ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })

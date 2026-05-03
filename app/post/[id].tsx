@@ -11,6 +11,7 @@ import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, Platfo
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '@/components/PostCard';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import RichContentRenderer from '@/components/RichContentRenderer';
 
 export default function PostDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -241,9 +242,7 @@ export default function PostDetailScreen() {
           </View>
 
           <View className="px-6 mb-12">
-            <Text className="text-[17px] text-slate-800 dark:text-slate-200 leading-[32px]" style={{ fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }}>
-              {cleanContent}
-            </Text>
+            <RichContentRenderer content={cleanContent} />
           </View>
 
           {/* Action / Reaction Bar */}

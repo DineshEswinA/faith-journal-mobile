@@ -1,7 +1,7 @@
 import Header from '@/components/Header';
 import PostCard from '@/components/PostCard';
 import { getReadTime } from '@/lib/readTime';
-import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
+import { DEFAULT_POST_COVER_IMAGE } from '@/constants/AppConstants';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'expo-router';
@@ -42,6 +42,7 @@ export default function HomeScreen() {
           title,
           excerpt,
           content,
+          cover_image,
           created_at,
           likes(count),
           comments(count),
@@ -106,7 +107,7 @@ export default function HomeScreen() {
     fetchPosts();
   }, [user?.id, selectedCategory]);
 
-  const getFeaturedImage = () => 'https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?q=80&w=3264&auto=format&fit=crop';
+  const getPostCoverImage = (post: any) => post?.cover_image || DEFAULT_POST_COVER_IMAGE;
 
   const handleBookmark = async (postId: string) => {
     if (!user) return;
@@ -124,7 +125,7 @@ export default function HomeScreen() {
       if (post.id === postId) {
         return {
           ...post,
-          bookmarks_count: isCurrentlyBookmarked 
+          bookmarks_count: isCurrentlyBookmarked
             ? Math.max(0, (post.bookmarks_count || 0) - 1)
             : (post.bookmarks_count || 0) + 1
         };
@@ -154,7 +155,7 @@ export default function HomeScreen() {
         if (post.id === postId) {
           return {
             ...post,
-            bookmarks_count: isCurrentlyBookmarked 
+            bookmarks_count: isCurrentlyBookmarked
               ? (post.bookmarks_count || 0) + 1
               : Math.max(0, (post.bookmarks_count || 0) - 1)
           };
@@ -199,7 +200,7 @@ export default function HomeScreen() {
           {featured && (
             <TouchableOpacity className="mb-12" activeOpacity={0.8} onPress={() => router.push(`/post/${featured.id}`)}>
               <View className="w-full h-56 rounded bg-slate-200 dark:bg-slate-700 overflow-hidden mb-6">
-                <Image source={{ uri: getFeaturedImage() }} className="w-full h-full" resizeMode="cover" />
+                <Image source={{ uri: getPostCoverImage(featured) }} className="w-full h-full" resizeMode="cover" />
               </View>
               <View className="flex-row items-center gap-x-2 mb-4">
                 <Text className="text-[9px] font-bold text-[#047857] tracking-[2px] uppercase">{featured.category}</Text>
