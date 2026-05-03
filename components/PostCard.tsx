@@ -1,9 +1,10 @@
 import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { getReadTime } from '@/lib/readTime';
+import { sharePost } from '@/lib/sharePost';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useRouter } from 'expo-router';
 import { Bookmark, Heart, MessageCircle, MoreVertical, Share2, UserPlus } from 'lucide-react-native';
-import { Alert, Image, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 export type PostCardProps = {
   item: any;
@@ -146,7 +147,7 @@ export default function PostCard({
                 <View className="absolute right-0 bottom-6 bg-white dark:bg-[#1A1A1A] rounded-xl shadow-lg shadow-black/20 border border-slate-100 dark:border-slate-800 py-1 z-50 w-44" style={{ elevation: 5 }}>
                   <TouchableOpacity className="flex-row items-center px-4 py-3 border-b border-slate-50 dark:border-slate-800 gap-x-3" onPress={() => {
                     onMenuToggle?.(item.id);
-                    Alert.alert('Share', 'Sharing options...');
+                    sharePost(item);
                   }}>
                     <Share2 size={16} color={colors.icon} />
                     <Text className="text-[13px] font-medium text-slate-700 dark:text-slate-300">Share</Text>
@@ -252,7 +253,7 @@ export default function PostCard({
               <View className="absolute right-0 bottom-6 bg-white dark:bg-[#1A1A1A] rounded-xl shadow-lg shadow-black/20 border border-slate-100 dark:border-slate-800 py-1 z-50 w-44" style={{ elevation: 5 }}>
                 <TouchableOpacity className="flex-row items-center px-4 py-3 border-b border-slate-50 dark:border-slate-800 gap-x-3" onPress={() => {
                   onMenuToggle?.(item.id);
-                  Alert.alert('Share', 'Sharing options...');
+                  sharePost(item);
                 }}>
                   <Share2 size={16} color={colors.icon} />
                   <Text className="text-[13px] font-medium text-slate-700 dark:text-slate-300">Share</Text>

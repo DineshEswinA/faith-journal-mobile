@@ -1,6 +1,7 @@
 import Header from '@/components/Header';
 import { DEFAULT_AVATAR_URL } from '@/constants/AppConstants';
 import { getReadTime } from '@/lib/readTime';
+import { sharePost } from '@/lib/sharePost';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -140,6 +141,10 @@ export default function PostDetailScreen() {
     }
   };
 
+  const handleShare = () => {
+    sharePost(post);
+  };
+
   const submitComment = async () => {
     if (!user) {
       Alert.alert('Sign In Required', 'You must be signed in to add a comment.');
@@ -265,7 +270,7 @@ export default function PostDetailScreen() {
               <TouchableOpacity onPress={handleBookmark}>
                 <Bookmark size={20} color={isBookmarked ? '#047857' : colors.iconMid} fill={isBookmarked ? '#047857' : 'transparent'} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleShare}>
                 <Share2 size={20} color={colors.iconMid} />
               </TouchableOpacity>
             </View>
