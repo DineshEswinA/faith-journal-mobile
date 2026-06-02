@@ -110,7 +110,17 @@ export default function HomeScreen() {
   const getPostCoverImage = (post: any) => post?.cover_image || DEFAULT_POST_COVER_IMAGE;
 
   const handleBookmark = async (postId: string) => {
-    if (!user) return;
+    if (!user) {
+      Alert.alert(
+        'Sign In Required',
+        'You must be signed in to bookmark stories.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/(auth)/sign-in') }
+        ]
+      );
+      return;
+    }
     const isCurrentlyBookmarked = bookmarkedIds.has(postId);
 
     // Optimistically update local state

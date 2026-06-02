@@ -1,6 +1,7 @@
 import Header from '@/components/Header';
 import RichContentRenderer from '@/components/RichContentRenderer';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import GuestPrompt from '@/components/GuestPrompt';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { decode } from 'base64-arraybuffer';
@@ -338,6 +339,19 @@ export default function CreateScreen() {
   const draftStatusText = lastDraftSavedAt
     ? `Draft saved ${lastDraftSavedAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
     : 'Draft not saved';
+
+  if (!user) {
+    return (
+      <SafeAreaView edges={['top']} className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]">
+        <Header leftAction="menu" rightAction="avatar" />
+        <GuestPrompt
+          title="Write Your Story"
+          description="Create an account to write reflections, document prayers, keep a personal journal, and publish your dispatches to the community."
+          iconType="write"
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]">

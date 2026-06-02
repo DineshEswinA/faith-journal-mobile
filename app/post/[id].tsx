@@ -88,7 +88,14 @@ export default function PostDetailScreen() {
 
   const handleLike = async () => {
     if (!user) {
-      Alert.alert('Sign In Required', 'You must be signed in to like a post.');
+      Alert.alert(
+        'Sign In Required',
+        'You must be signed in to like stories.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/(auth)/sign-in') }
+        ]
+      );
       return;
     }
     if (isLiking) return;
@@ -120,10 +127,21 @@ export default function PostDetailScreen() {
   };
 
   const handleBookmark = async () => {
-    if (!user || !id) return;
+    if (!id) return;
+    if (!user) {
+      Alert.alert(
+        'Sign In Required',
+        'You must be signed in to bookmark stories.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/(auth)/sign-in') }
+        ]
+      );
+      return;
+    }
     const postId = Array.isArray(id) ? id[0] : id;
     const isCurrentlyBookmarked = isBookmarked;
-    
+
     // Optimistically update
     setIsBookmarked(!isCurrentlyBookmarked);
 
@@ -148,7 +166,14 @@ export default function PostDetailScreen() {
 
   const submitComment = async () => {
     if (!user) {
-      Alert.alert('Sign In Required', 'You must be signed in to add a comment.');
+      Alert.alert(
+        'Sign In Required',
+        'You must be signed in to share your comments.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/(auth)/sign-in') }
+        ]
+      );
       return;
     }
     if (!newComment.trim()) return;

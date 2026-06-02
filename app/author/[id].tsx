@@ -83,7 +83,18 @@ export default function AuthorProfileScreen() {
   };
 
   const handleFollow = async () => {
-    if (!user || id === user.id) return;
+    if (!user) {
+      Alert.alert(
+        'Sign In Required',
+        'You must be signed in to follow authors.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/(auth)/sign-in') }
+        ]
+      );
+      return;
+    }
+    if (id === user.id) return;
     if (isFollowing) {
       await supabase.from('followers').delete().match({ follower_id: user.id, following_id: id });
       setIsFollowing(false);
@@ -96,7 +107,17 @@ export default function AuthorProfileScreen() {
   };
 
   const handleBookmark = async (postId: string) => {
-    if (!user) return;
+    if (!user) {
+      Alert.alert(
+        'Sign In Required',
+        'You must be signed in to bookmark stories.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/(auth)/sign-in') }
+        ]
+      );
+      return;
+    }
     const alreadyBookmarked = bookmarkedIds.has(postId);
     if (alreadyBookmarked) {
       await supabase.from('bookmarks').delete().match({ user_id: user.id, post_id: postId });

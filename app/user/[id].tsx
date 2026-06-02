@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -50,7 +50,18 @@ export default function UserProfileScreen() {
   }, [id, user]);
 
   const handleFollowToggle = async () => {
-    if (!user || !profile) return;
+    if (!profile) return;
+    if (!user) {
+      Alert.alert(
+        'Sign In Required',
+        'You must be signed in to follow users.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => router.push('/(auth)/sign-in') }
+        ]
+      );
+      return;
+    }
     setIsFollowing(!isFollowing);
 
     if (isFollowing) {

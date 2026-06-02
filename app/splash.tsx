@@ -13,15 +13,11 @@ export default function SplashScreen() {
     if (!isInitialized) return;
 
     const timer = setTimeout(() => {
-      if (session) {
-        router.replace('/(tabs)');
-      } else {
-        router.replace('/(auth)/sign-in');
-      }
+      router.replace('/(tabs)');
     }, 2000); // 2 second delay for splash
 
     return () => clearTimeout(timer);
-  }, [isInitialized, session]);
+  }, [isInitialized]);
 
   return (
     <SafeAreaView className="flex-1 bg-[#F2F6F3] dark:bg-[#111111] relative items-center justify-center pt-20" edges={['top', 'bottom']}>

@@ -72,11 +72,8 @@ function RootLayoutNav() {
     if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    const inTabsGroup = segments[0] === '(tabs)';
 
-    if (!session && inTabsGroup) {
-      setTimeout(() => router.replace('/(auth)/sign-in'), 0);
-    } else if (session && inAuthGroup) {
+    if (session && inAuthGroup) {
       setTimeout(() => router.replace('/(tabs)'), 0);
     }
   }, [session, isInitialized, segments]);

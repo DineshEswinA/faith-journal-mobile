@@ -121,7 +121,9 @@ export function SideDrawerProvider({ children }: { children: ReactNode }) {
   };
 
   const displayAvatar = profileData?.avatar_url || user?.user_metadata?.avatar_url || DEFAULT_AVATAR_URL;
-  const displayName = profileData?.full_name || profileData?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Faith Journal Member';
+  const displayName = user
+    ? (profileData?.full_name || profileData?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Faith Journal Member')
+    : 'Guest';
 
   return (
     <SideDrawerContext.Provider value={value}>
@@ -159,7 +161,7 @@ export function SideDrawerProvider({ children }: { children: ReactNode }) {
                     {displayName}
                   </Text>
                   <Text className="text-[13px] text-slate-500 dark:text-slate-400 mt-2">
-                    {user?.email || 'Signed in'}
+                    {user?.email || 'Not signed in'}
                   </Text>
                 </View>
 
@@ -204,13 +206,26 @@ export function SideDrawerProvider({ children }: { children: ReactNode }) {
                 </View>
 
                 <View className="mt-auto px-6 pb-4">
-                  <TouchableOpacity
-                    className="bg-[#F8FAFC] dark:bg-[#1A1A1A] py-4 rounded-2xl flex-row items-center justify-center"
-                    onPress={handleSignOut}
-                  >
-                    <LogOut size={16} color="#DC2626" />
-                    <Text className="ml-2 text-[#DC2626] font-bold text-[13px]">Log Out</Text>
-                  </TouchableOpacity>
+                  {user ? (
+                    <TouchableOpacity
+                      className="bg-[#F8FAFC] dark:bg-[#1A1A1A] py-4 rounded-2xl flex-row items-center justify-center"
+                      onPress={handleSignOut}
+                    >
+                      <LogOut size={16} color="#DC2626" />
+                      <Text className="ml-2 text-[#DC2626] font-bold text-[13px]">Log Out</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      className="bg-[#E8F3EE] dark:bg-[#0D2318] py-4 rounded-2xl flex-row items-center justify-center"
+                      onPress={() => {
+                        closeDrawer();
+                        router.push('/(auth)/sign-in');
+                      }}
+                    >
+                      <User size={16} color="#047857" />
+                      <Text className="ml-2 text-[#047857] font-bold text-[13px]">Sign In</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </SafeAreaView>
             </Animated.View>

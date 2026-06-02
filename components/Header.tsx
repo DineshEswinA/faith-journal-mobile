@@ -57,9 +57,8 @@ export default function Header({
   return (
     <Container
       {...containerProps}
-      className={`bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4 ${
-        hideBorder ? '' : 'border-b border-slate-100 dark:border-slate-800'
-      }`}
+      className={`bg-[#FAFAFA] dark:bg-[#111111] flex-row justify-between items-center px-6 py-4 ${hideBorder ? '' : 'border-b border-slate-100 dark:border-slate-800'
+        }`}
     >
       <View className="w-8 justify-center items-start">
         {leftAction !== 'none' && (
@@ -87,8 +86,8 @@ export default function Header({
 
       <View className="w-8 justify-center items-end">
         {rightAction !== 'none' && (
-          <TouchableOpacity 
-            onPress={handleRightPress} 
+          <TouchableOpacity
+            onPress={handleRightPress}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             className={rightAction === 'avatar' ? 'w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700' : ''}
           >

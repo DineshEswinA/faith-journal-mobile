@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '@/components/PostCard';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useSideDrawer } from '@/components/SideDrawerProvider';
+import GuestPrompt from '@/components/GuestPrompt';
 
 type Tab = 'published' | 'drafts' | 'saved';
 
@@ -26,6 +27,19 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { colors } = useAppTheme();
   const { openDrawer } = useSideDrawer();
+
+  if (!user) {
+    return (
+      <SafeAreaView className="flex-1 bg-[#FAFAFA] dark:bg-[#111111]" edges={['top']}>
+        <Header title="Profile" titleStyle="sans" leftAction="menu" rightAction="none" />
+        <GuestPrompt
+          title="Your Journal Garden"
+          description="Create an account to view your published dispatches, manage your drafts, and access your saved articles."
+          iconType="profile"
+        />
+      </SafeAreaView>
+    );
+  }
 
   useEffect(() => {
     if (!user) return;
